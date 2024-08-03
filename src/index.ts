@@ -3,12 +3,15 @@ import log from "log-beautify";
 import Pino from "pino";
 import * as path from "path";
 import { writeFileSync } from "fs";
+import { commandHandler, prefix } from "./commands/base";
 
 class WhatsappConnector {
   private socket: WASocket | undefined;
+  private commandHandler: commandHandler;
 
   constructor() {
     this.initialize();
+    this.commandHandler = new commandHandler(prefix);
   }
 
   public static async connect() {
@@ -56,23 +59,16 @@ class WhatsappConnector {
 
     this.socket.ev.on("creds.update", saveCreds);
 
+
     this.socket.ev.on("messages.upsert", async ({ messages }) => {
-      messages.forEach(async (message) => {
-        if (!message.key.fromMe) {
-          await this.socket?.sendMessage(message.key.remoteJid, {
-            text: "Olá mundo",
-            buttons: [
-              {
-                buttonId: "Ola",
-                buttonText: {
-                  displayText: "Ola",
-                },
-                type: 1,
-              },
-            ],
-          });
+        for (const message of messages) {
+            if(!message.key.fromMe && message.message) {
+                const response = this.commandHandler.handle(message);
+                if(response){
+                    await this.socket?.sendMessage(message.key.remoteJid, {text: response});
+                }
+            }
         }
-      });
     });
   }
 }
