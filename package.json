@@ -1,0 +1,26 @@
+{
+  "name": "cardapiorubotwp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:prod": "tsc && node dist/index.js",
+    "start:dev": "tsx watch src/index.ts"
+  },
+  "keywords": [],
+  "author": "OyakXD",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.1.0",
+    "@types/qrcode-terminal": "^0.12.2",
+    "tsx": "^4.16.5",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "baileys": "github:WhiskeySockets/Baileys",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
