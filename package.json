@@ -20,6 +20,7 @@
   "dependencies": {
     "@hapi/boom": "^10.0.1",
     "baileys": "github:WhiskeySockets/Baileys",
+    "log-beautify": "^1.2.0",
     "qrcode-terminal": "^0.12.0"
   }
 }

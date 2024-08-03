@@ -1,0 +1,31 @@
+{
+  "message": {
+    "messageContextInfo": {
+      "deviceListMetadata": {
+        "recipientKeyHash": "wyhoR28zKO+i8g==",
+        "recipientTimestamp": "1722708838"
+      },
+      "deviceListMetadataVersion": 2
+    },
+    "buttonsMessage": {
+      "contentText": "Você já é cliente Giga+?",
+      "buttons": [
+        {
+          "buttonId": "Sou cliente",
+          "buttonText": {
+            "displayText": "Sou cliente"
+          },
+          "type": "RESPONSE"
+        },
+        {
+          "buttonId": "Não sou cliente",
+          "buttonText": {
+            "displayText": "Não sou cliente"
+          },
+          "type": "RESPONSE"
+        }
+      ],
+      "headerType": "EMPTY"
+    }
+  }
+}

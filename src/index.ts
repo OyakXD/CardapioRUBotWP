@@ -1,61 +1,80 @@
-import makeWASocket, { ConnectionState, DisconnectReason, WASocket, useMultiFileAuthState } from "baileys";
-import { Boom } from '@hapi/boom';
-import { writeFileSync, readFileSync, existsSync } from "fs";
+import makeWASocket, { useMultiFileAuthState, WASocket } from "baileys";
+import log from "log-beautify";
+import Pino from "pino";
+import * as path from "path";
+import { writeFileSync } from "fs";
 
 class WhatsappConnector {
-    private sock: WASocket | undefined;
+  private socket: WASocket | undefined;
 
-    constructor() {
-        this.initialize();
-    }
+  constructor() {
+    this.initialize();
+  }
 
-    private async initialize() {
+  public static async connect() {
+    new WhatsappConnector();
+  }
 
-        const { state, saveCreds } = await useMultiFileAuthState("auth_session");
+  public async initialize() {
+    const { state: authState, saveCreds } = await useMultiFileAuthState(
+      "auth_session"
+    );
 
-        const sock = makeWASocket({
-            printQRInTerminal: true,
-            auth: state,
-        });
+    const logger = Pino({
+      level: "debug",
+      hooks: {
+        logMethod: (args, method, level) => {
+          if (level > 20 && level < 40) {
+            log.info_("[SOCKET (DEBUG)] => " + args[args.length - 1]);
+          }
+        },
+      },
+    });
 
-        sock.ev.on("connection.update", (update) => {
-            const { connection, lastDisconnect } = update;
+    this.socket = makeWASocket({
+      printQRInTerminal: true,
+      auth: authState,
+      //      logger: logger,
+    });
 
-            if (connection === "close") {
-            const shouldReconnect =
-                (lastDisconnect.error as Boom)?.output?.statusCode !==
-                DisconnectReason.loggedOut;
-            console.log(
-                "connection closed due to ",
-                lastDisconnect.error,
-                ", reconnecting ",
-                shouldReconnect
-            );
+    this.socket.ev.on("connection.update", (update) => {
+      const { connection, lastDisconnect } = update;
 
-            // reconnect if not logged out
-            if (shouldReconnect) {
-                WhatsappConnector.connect(); 
-            }
-            } else if (connection === "open") {
-            console.log("opened connection");
-            }
-        });
+      if (connection === "close") {
+        log.warn(
+          "[SESSION] => Sessão finalizada de forma inesperada! Re-iniciando em 1s...."
+        );
+        log.warn("[SESSION (ERROR)] => " + lastDisconnect.error);
 
-    
-    }
+        setTimeout(() => {
+          WhatsappConnector.connect();
+        }, 1000);
+      } else if (connection === "open") {
+        log.ok("[SESSION] => Sessão aberta...");
+      }
+    });
 
-    
-    
-    private async handleMessages(m: any) {
-        if (!m.messages[0].key.fromMe) {
-            console.log('replying to', m.messages[0].key.remoteJid);
-            await this.sock?.sendMessage(m.messages[0].key.remoteJid!, { text: 'Olá teste!' });
+    this.socket.ev.on("creds.update", saveCreds);
+
+    this.socket.ev.on("messages.upsert", async ({ messages }) => {
+      messages.forEach(async (message) => {
+        if (!message.key.fromMe) {
+          await this.socket?.sendMessage(message.key.remoteJid, {
+            text: "Olá mundo",
+            buttons: [
+              {
+                buttonId: "Ola",
+                buttonText: {
+                  displayText: "Ola",
+                },
+                type: 1,
+              },
+            ],
+          });
         }
-    }
-
-    public static async connect() {
-        new WhatsappConnector();
-    }   
+      });
+    });
+  }
 }
 
-WhatsappConnector.connect();    
+WhatsappConnector.connect();

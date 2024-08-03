@@ -1,0 +1,16 @@
+{
+  "message": {
+    "extendedTextMessage": {
+      "text": "a"
+    },
+    "messageContextInfo": {
+      "deviceListMetadata": {
+        "senderKeyHash": "d+I9g8oCo/d4bg==",
+        "senderTimestamp": "1722702926",
+        "recipientKeyHash": "wyhoR28zKO+i8g==",
+        "recipientTimestamp": "1722708838"
+      },
+      "deviceListMetadataVersion": 2
+    }
+  }
+}
