@@ -1,15 +1,42 @@
 import { proto } from "baileys";
 import * as fs from "fs";
 import log from "log-beautify";
+import { MenuManager } from "./menu-manager";
+import schedule from "node-schedule";
+import { MenuParser } from "../parser/menu-parser";
 
 export class UserManager {
   public static async initialize() {
-    //TODO: fazer o sistema de enviar notificação as 10:40(Almoço) e 16:40 (Jantar)
-    //NOTA: pode usar o node-schedule para agendar as notificações
-    //NOTA: não esquece do timezone
-    //NOTA: Não esquece de ver se está no meio de semana, se não estiver nem tenta puxar o cardapio e etc...
     //NOTA: puxa o cardapio depois usuarios, depois usa o MenuManager:canReceiveNotificationInPrivateChat() para ver se as pessoas que estão agendadas podem receber o cardapio no privado, se não manda so nos grupos,
     //NOTA: UserManager::isChatPrivate() para ver se é privado ou não
+
+    schedule.scheduleJob(
+      { hour: 10, minute: 40, tz: "America/Fortaleza" },
+      () => {
+        this.sendNotification("lunch");
+      }
+    );
+    schedule.scheduleJob(
+      { hour: 16, minute: 30, tz: "America/Fortaleza" },
+      () => {
+        this.sendNotification("dinner");
+      }
+    );
+  }
+  
+  public static async sendNotification(type: "lunch" | "dinner") {
+    if(MenuManager.isMiddleWeek){
+      const menu = MenuParser.mountMenu(type);
+      const users = await this.getUsers();
+
+      users.forEach(async (user: string) => {
+        if (await this.canReceiveNotification(user)) {
+          if((MenuManager.canReceiveNotificationInPrivateChat() && this.isChatPrivate(user)) || !this.isChatPrivate(user)){ 
+            
+          }
+        }
+      });
+    }
   }
 
   public static async canReceiveNotification(userId: string) {
@@ -63,7 +90,9 @@ export class UserManager {
     );
   }
 
-  public static isChatPrivate(messageKey: proto.IMessageKey) {
-    return messageKey.remoteJid!.includes("@s.whatsapp.net")!;
+  public static isChatPrivate(userJid: string) {
+    return userJid.includes("@s.whatsapp.net")!;
   }
+
+  
 }

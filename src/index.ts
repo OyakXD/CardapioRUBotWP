@@ -7,6 +7,7 @@ import log from "log-beautify";
 import Pino from "pino";
 import { commandHandler, prefix as CommandPrefix } from "./commands/base";
 import { MenuManager } from "./manager/menu-manager";
+import { UserManager } from "./manager/user-manager";
 
 class WhatsappConnector {
   private socket: WASocket | undefined;
@@ -22,8 +23,9 @@ class WhatsappConnector {
   }
 
   public async initialize() {
-    const [_, multiAuthState] = await Promise.all([
+    const [, ,multiAuthState] = await Promise.all([
       await MenuManager.initialize(),
+      await UserManager.initialize(),
       await useMultiFileAuthState("auth_session"),
     ]);
 
