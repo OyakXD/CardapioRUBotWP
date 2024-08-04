@@ -27,7 +27,7 @@ export class commandHandler {
         case "amor":
           return "Você é muito especial para mim!";
         case "cardapio":
-        case "Cardápio":
+        case "cardápio":
           const { lunch, dinner, date } = await MenuManager.getMenu();
 
           const [lunchMessage, dinnerMessage] = await Promise.all([
