@@ -3,13 +3,13 @@ import * as fs from "fs";
 
 export class MenuManager {
   public static async initialize() {
-    setTimeout(this.loadMenu, 1000 * 60 * 6);
+    setTimeout(this.loadMenu, 1000 * 60 * 60 * 6);
 
     this.loadMenu();
   }
 
   public static async loadMenu() {
-    if (this.isMiddleWeek() || true) {
+    if (MenuManager.isMiddleWeek() || true) {
       const [lunch, dinner] = await new RequestMenu().get();
       const date = this.getCurrentDate().toLocaleDateString("pt-BR");
 
@@ -40,5 +40,9 @@ export class MenuManager {
     });
 
     return new Date(fortalezaTime);
+  }
+
+  public static canReceiveNotificationInPrivateChat() {
+    return false;
   }
 }

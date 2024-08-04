@@ -1,4 +1,8 @@
-import makeWASocket, { useMultiFileAuthState, WASocket } from "baileys";
+import makeWASocket, {
+  makeCacheableSignalKeyStore,
+  useMultiFileAuthState,
+  WASocket,
+} from "baileys";
 import log from "log-beautify";
 import Pino from "pino";
 import { commandHandler, prefix as CommandPrefix } from "./commands/base";
@@ -38,9 +42,16 @@ class WhatsappConnector {
 
     this.socket = makeWASocket({
       printQRInTerminal: true,
-      auth: authState,
       logger: logger,
       markOnlineOnConnect: false,
+      syncFullHistory: false,
+      shouldSyncHistoryMessage: () => false,
+      mobile: false,
+      auth: {
+        creds: authState.creds,
+        /** caching makes the store faster to send/recv messages */
+        keys: makeCacheableSignalKeyStore(authState.keys, logger),
+      },
     });
 
     this.socket.ev.on("connection.update", (update) => {
@@ -72,7 +83,10 @@ class WhatsappConnector {
           if (message.key.remoteJid === "status@broadcast") return;
           if (message.message?.pollUpdateMessage) return;
 
-          const response = await this.commandHandler.handle(message);
+          const response = await this.commandHandler.handle(
+            message,
+            this.socket
+          );
 
           if (response) {
             await this.socket?.sendMessage(

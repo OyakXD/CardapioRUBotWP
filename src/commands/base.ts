@@ -1,64 +1,27 @@
 import { proto, WASocket } from "baileys";
 import { MenuManager } from "../manager/menu-manager";
-import fs from "fs";
+import { UserManager } from "../manager/user-manager";
 
 export const prefix = "!";
 
 export class commandHandler {
   private prefix: string;
-  private socket: WASocket;
-  private reminderUsers: Set<String>;
-  private reminderInterval: NodeJS.Timeout;
-
 
   constructor(prefix: string) {
     this.prefix = prefix || "!";
-    this.reminderUsers = this.loadReminderUsers();
-    this.startReminders();
   }
 
-  private loadReminderUsers(): Set<string> {
-      try{
-        const data = fs.readFileSync("users.json", "utf-8");
-        const users = JSON.parse(data);
-        return new Set(users);
-      } catch (error) {
-        console.error("Erro ao carregar os usuarios", error);
-        return new Set();
-      }
-  }
-
-  private saveReminderUsers(){
-    try {
-      const users = Array.from(this.reminderUsers);
-      fs.writeFileSync("users.json", JSON.stringify(users, null, 2), "utf-8");
-    } catch (error) {
-      console.error("Erro ao salvar os usuarios", error);
-    }
-  }
-
-  private startReminders(): void {
-    const intervalMs = 3600000;
-
-    this.reminderInterval = setInterval(() => {
-      this.sendReminders();
-    }, intervalMs);
-  }
-
-  private async sendReminders(): Promise<void> {
-    const reminderMessage = "Não se esqueça de agender o almoçar e jantar!";
-    for(const userId of this.reminderUsers){
-      await this.socket.sendMessage(userId, {text: reminderMessage});
-    }
-  }
-
-  public async handle({ message }: proto.IWebMessageInfo) {
+  public async handle(
+    { message, key: messageKey }: proto.IWebMessageInfo,
+    socket: WASocket
+  ) {
     const body =
       message.extendedTextMessage?.text || message.conversation || "";
 
     if (body.startsWith(this.prefix)) {
       const args = body.slice(this.prefix.length).trim().split(" ");
       const command = args.shift()?.toLowerCase();
+      const userId = messageKey.remoteJid!;
 
       switch (command) {
         case "amor":
@@ -93,11 +56,70 @@ export class commandHandler {
           ];
 
           return message.join("\n").trim();
-          case "notificacao":
-          const userId = message.keys.remoteJid!;
-          this.reminderUsers.add(userId);
-          this.saveReminderUsers();
-          return "Você será lembrado de agendar o almoço e jantar todos os dias!";
+        case "toggle":
+          if (this.isChatPrivate(messageKey)) {
+            return "Esse comando só pode ser executado em grupo!";
+          }
+
+          const participantID = messageKey.participant!;
+          const groupParticipant = (
+            await socket.groupMetadata(messageKey.remoteJid!)
+          ).participants.filter(
+            (participant) => participant.id === participantID
+          )[0]!;
+          const isParticipantAdmin = !!groupParticipant.admin!;
+
+          if (!isParticipantAdmin) {
+            return "Apenas administradores podem executar esse comando!";
+          }
+
+          if (await UserManager.canReceiveNotification(userId)) {
+            await UserManager.removeReceiveNotification(userId);
+
+            return "Agora o cardápio diário não será mais enviado para esse grupo!";
+          } else {
+            await UserManager.addReceiveNotification(userId);
+
+            return "Agora o cardápio diário será enviado para esse grupo!";
+          }
+        case "start":
+          if (!this.isChatPrivate(messageKey)) {
+            return "Esse comando só pode ser executado em uma conversa privada!";
+          }
+
+          if (!MenuManager.canReceiveNotificationInPrivateChat()) {
+            return "Esse comando não está disponível no momento!";
+          }
+
+          if (!(await UserManager.canReceiveNotification(userId))) {
+            if (await UserManager.addReceiveNotification(userId)) {
+              return "Agora você está recebendo o cardápio diário!";
+            } else {
+              return "Erro ao adicionar você na lista de notificações!";
+            }
+          } else {
+            return "Você já está recebendo o cardápio diário!";
+          }
+        case "stop":
+          if (!this.isChatPrivate(messageKey)) {
+            return "Esse comando só pode ser executado em uma conversa privada!";
+          }
+
+          if (!MenuManager.canReceiveNotificationInPrivateChat()) {
+            return "Esse comando não está disponível no momento!";
+          }
+
+          if (await UserManager.canReceiveNotification(userId)) {
+            await UserManager.removeReceiveNotification(userId);
+
+            if (await UserManager.removeReceiveNotification(userId)) {
+              return "Agora você não está recebendo o cardápio diário!";
+            } else {
+              return "Erro ao remover você da lista de notificações!";
+            }
+          } else {
+            return "Você não está recebendo o cardápio diário!";
+          }
         default:
           return "Comando não encontrado";
       }
@@ -135,5 +157,9 @@ export class commandHandler {
       });
     }
     return message.trim();
+  }
+
+  public isChatPrivate(messageKey: proto.IMessageKey) {
+    return messageKey.remoteJid!.includes("@s.whatsapp.net")!;
   }
 }
