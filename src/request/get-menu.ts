@@ -7,7 +7,7 @@ export const previewMenuURL =
 export class RequestMenu {
   private menuURL: string = previewMenuURL;
 
-  public async get() {
+  public async get(): Promise<{ [key: string]: string[] }[]> {
     const [lunch, dinner] = await this.request();
 
     if (!lunch || !dinner) {
