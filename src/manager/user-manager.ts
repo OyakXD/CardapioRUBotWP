@@ -4,6 +4,10 @@ import log from "log-beautify";
 export class UserManager {
   public static async initialize() {
     //TODO: fazer o sistema de enviar notificação as 10:40(Almoço) e 16:40 (Jantar)
+    //NOTA: pode usar o node-schedule para agendar as notificações
+    //NOTA: não esquece do timezone
+    //NOTA: Não esquece de ver se está no meio de semana, se não estiver nem tenta puxar o cardapio e etc...
+    //NOTA: puxa o cardapio depois usuarios, depois usa o MenuManager:canReceiveNotificationInPrivateChat() para ver se as pessoas que estão agendadas podem receber o cardapio no privado, se não manda so nos grupos,
   }
 
   public static async canReceiveNotification(userId: string) {
