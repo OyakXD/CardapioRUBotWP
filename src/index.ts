@@ -63,7 +63,7 @@ class WhatsappConnector {
 
     this.socket.ev.on("messages.upsert", async ({ messages }) => {
       for (const message of messages) {
-        if (!message.key.fromMe && message.message) {
+        if (/* !message.key.fromMe &&  */ message.message) {
           const response = await this.commandHandler.handle(message);
 
           if (response) {

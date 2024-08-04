@@ -11,7 +11,8 @@ export class commandHandler {
   }
 
   public async handle({ message }: proto.IWebMessageInfo) {
-    const body = message.extendedTextMessage?.text || "";
+    const body =
+      message.extendedTextMessage?.text || message.conversation || "";
 
     if (body.startsWith(this.prefix)) {
       const args = body.slice(this.prefix.length).trim().split(" ");
@@ -22,8 +23,26 @@ export class commandHandler {
           return "Você é muito especial para mim!";
         case "cardapio":
         case "Cardápio":
-        const { lunch, dinner } = await MenuManager.getMenu(); 
-        return "Almoço: \n" + await this.getMenuMessage(lunch) + "Jantar: \n" + await this.getMenuMessage(dinner);
+          const { lunch, dinner, date } = await MenuManager.getMenu();
+
+          const [lunchMessage, dinnerMessage] = await Promise.all([
+            await this.getMenuMessage(lunch),
+            await this.getMenuMessage(dinner),
+          ]);
+
+          const message = [
+            `🍽 Bom dia alunos! No cardápio de hoje (${date}) teremos: 🕛`,
+            ``,
+            `*Almoço:*`,
+            "-".repeat(40),
+            lunchMessage,
+            ``,
+            `*Jantar:*`,
+            "-".repeat(40),
+            dinnerMessage,
+          ];
+
+          return message.join("\n").trim();
         default:
           return "Comando não encontrado";
       }
@@ -32,18 +51,34 @@ export class commandHandler {
     return null;
   }
 
-  public async getMenuMessage(menu: { [key: string]: string[] }){
+  public async getMenuMessage(menu: { [key: string]: string[] }) {
     let message = "";
 
-    for(const[category, itens] of Object.entries(menu)){
-      message += `${category}: \n`;
+    const emojis = {
+      Principal: ["🍛", "🍲"],
+      Vegetariano: "🌱",
+      Acompanhamento: ["🍚", "🍚", "🫘"],
+      Salada: "🥗",
+      Guarnição: "🍟",
+      Sobremesa: ["🍈", "🍬"],
+      Suco: "🍹",
+    };
 
-      itens.forEach((item) => {
-        message += `- ${item}\n`;
+    for (const [category, itens] of Object.entries(menu)) {
+      message += `\n${category}: \n`;
+
+      const emojiCategory = emojis[category] || "";
+      const emojiList = Array.isArray(emojiCategory)
+        ? emojiCategory
+        : [emojiCategory];
+
+      itens.forEach((item, index) => {
+        const emoji = emojiList[index]! || "";
+        const itemMessage = `${item} ${emoji}`.trim();
+
+        message += `- ${itemMessage}\n`;
       });
-
-      message += "\n";
     }
-    return message;
+    return message.trim();
   }
 }
