@@ -7,14 +7,14 @@ export const previewMenuURL =
 export class RequestMenu {
   private menuURL: string = previewMenuURL;
 
-  public async get(type: "lunch" | "dinner") {
+  public async get() {
     const [lunch, dinner] = await this.request();
 
     if (!lunch || !dinner) {
-      return null;
+      return [null, null];
     }
 
-    return this.parser(type === "lunch" ? lunch : dinner);
+    return await Promise.all([this.parser(lunch), this.parser(dinner)]);
   }
 
   public async request() {

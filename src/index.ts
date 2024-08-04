@@ -2,6 +2,7 @@ import makeWASocket, { useMultiFileAuthState, WASocket } from "baileys";
 import log from "log-beautify";
 import Pino from "pino";
 import { commandHandler, prefix as CommandPrefix } from "./commands/base";
+import { MenuManager } from "./manager/menu-manager";
 
 class WhatsappConnector {
   private socket: WASocket | undefined;
@@ -17,9 +18,12 @@ class WhatsappConnector {
   }
 
   public async initialize() {
-    const { state: authState, saveCreds } = await useMultiFileAuthState(
-      "auth_session"
-    );
+    const [_, multiAuthState] = await Promise.all([
+      await MenuManager.initialize(),
+      await useMultiFileAuthState("auth_session"),
+    ]);
+
+    const { state: authState, saveCreds } = multiAuthState;
 
     const logger = Pino({
       level: "debug",
