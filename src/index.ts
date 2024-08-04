@@ -9,8 +9,8 @@ import { commandHandler, prefix as CommandPrefix } from "./commands/base";
 import { MenuManager } from "./manager/menu-manager";
 import { UserManager } from "./manager/user-manager";
 
-class WhatsappConnector {
-  private socket: WASocket | undefined;
+class WhatsappConnectorInstance {
+  public socket: WASocket | undefined;
   private commandHandler: commandHandler;
 
   constructor() {
@@ -18,12 +18,12 @@ class WhatsappConnector {
     this.commandHandler = new commandHandler(CommandPrefix);
   }
 
-  public static async connect() {
-    new WhatsappConnector();
+  public static connect() {
+    return new WhatsappConnectorInstance();
   }
 
   public async initialize() {
-    const [, ,multiAuthState] = await Promise.all([
+    const [, , multiAuthState] = await Promise.all([
       await MenuManager.initialize(),
       await UserManager.initialize(),
       await useMultiFileAuthState("auth_session"),
@@ -78,7 +78,7 @@ class WhatsappConnector {
         );
         log.warn_("[SOCKET (WARN)] => " + lastDisconnect.error);
 
-        setTimeout(WhatsappConnector.connect, 1000);
+        setTimeout(WhatsappConnectorInstance.connect, 1000);
       } else if (connection === "open") {
         log.ok_("[SOCKET (INFO)] => Sessão aberta...");
       }
@@ -125,4 +125,4 @@ class WhatsappConnector {
   }
 }
 
-WhatsappConnector.connect();
+export const WhatsappConnector = WhatsappConnectorInstance.connect();

@@ -1,4 +1,3 @@
-import { proto } from "baileys";
 import * as fs from "fs";
 import log from "log-beautify";
 import { MenuManager } from "./menu-manager";
@@ -23,16 +22,20 @@ export class UserManager {
       }
     );
   }
-  
+
   public static async sendNotification(type: "lunch" | "dinner") {
-    if(MenuManager.isMiddleWeek){
+    if (MenuManager.isMiddleWeek) {
       const menu = MenuParser.mountMenu(type);
       const users = await this.getUsers();
 
       users.forEach(async (user: string) => {
         if (await this.canReceiveNotification(user)) {
-          if((MenuManager.canReceiveNotificationInPrivateChat() && this.isChatPrivate(user)) || !this.isChatPrivate(user)){ 
-            
+          if (
+            (MenuManager.canReceiveNotificationInPrivateChat() &&
+              this.isChatPrivate(user)) ||
+            !this.isChatPrivate(user)
+          ) {
+            //TODO: Implement notification
           }
         }
       });
@@ -93,6 +96,4 @@ export class UserManager {
   public static isChatPrivate(userJid: string) {
     return userJid.includes("@s.whatsapp.net")!;
   }
-
-  
 }
