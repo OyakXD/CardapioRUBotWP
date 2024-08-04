@@ -62,7 +62,7 @@ class WhatsappConnector {
       },
       shouldIgnoreJid: (jid: string) => {
         return (
-          jid && (!jid.endsWith("@s.whatsapp.net") || !jid.endsWith("@c.us"))
+          jid && !jid.endsWith("@s.whatsapp.net") && !jid.endsWith("@g.us")
         );
       },
     });
