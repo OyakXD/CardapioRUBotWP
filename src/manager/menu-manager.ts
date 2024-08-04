@@ -1,6 +1,6 @@
 import { RequestMenu } from "../request/get-menu";
-import * as fs from "fs";
 import { ParserMenu } from "../types/types";
+import * as fs from "fs";
 
 export class MenuManager {
   public static async initialize() {

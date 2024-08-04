@@ -24,9 +24,9 @@ class WhatsappConnectorInstance {
 
   public async initialize() {
     const [, , multiAuthState] = await Promise.all([
-      await MenuManager.initialize(),
-      await UserManager.initialize(),
-      await useMultiFileAuthState("auth_session"),
+      MenuManager.initialize(),
+      UserManager.initialize(),
+      useMultiFileAuthState("auth_session"),
     ]);
 
     const { state: authState, saveCreds } = multiAuthState;

@@ -30,9 +30,7 @@ export class commandHandler {
         case "cardapio":
         case "cardápio":
           const { lunch, dinner, date } = await MenuManager.getMenu();
-
           return MenuParser.mountMenuMessage(lunch, dinner, date);
-
         case "toggle":
           if (UserManager.isChatPrivate(userId)) {
             return "Esse comando só pode ser executado em grupo!";

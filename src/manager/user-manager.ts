@@ -14,7 +14,7 @@ export class UserManager {
       }
     );
     schedule.scheduleJob(
-      { hour: 19, minute: 53, tz: "America/Fortaleza" },
+      { hour: 16, minute: 30, tz: "America/Fortaleza" },
       () => {
         this.sendNotification("dinner");
       }
@@ -23,22 +23,24 @@ export class UserManager {
 
   public static async sendNotification(type: "lunch" | "dinner") {
     if (MenuManager.isMiddleWeek) {
-      const menu = await MenuParser.mountMenu(type);
-      const users = await this.getUsers();
+      const [menu, users] = await Promise.all([
+        MenuParser.mountMenu(type),
+        this.getUsers(),
+      ]);
 
-      users.forEach(async (user: string) => {
+      for (const user of users as string[]) {
         if (await this.canReceiveNotification(user)) {
           if (
             (MenuManager.canReceiveNotificationInPrivateChat() &&
               this.isChatPrivate(user)) ||
             !this.isChatPrivate(user)
           ) {
-            WhatsappConnector.socket.sendMessage(user, {
+            await WhatsappConnector.socket.sendMessage(user, {
               text: menu,
             });
           }
         }
-      });
+      }
     }
   }
 
