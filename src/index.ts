@@ -30,11 +30,19 @@ class WhatsappConnector {
     const { state: authState, saveCreds } = multiAuthState;
 
     const logger = Pino({
-      level: "debug",
+      level: "info",
       hooks: {
         logMethod: (args, method, level) => {
-          if (level > 20 && level < 40) {
-            log.info_("[SOCKET (DEBUG)] => " + args[args.length - 1]);
+          const message = args[args.length - 1];
+
+          if (level === 30) {
+            log.ok_("[SOCKET (INFO)] => " + args[args.length - 1]);
+          } else if (level === 40) {
+            log.warn_("[SOCKET (WARN)] => " + args[args.length - 1]);
+          } else if (level === 50) {
+            log.error_("[SOCKET (ERROR)] => " + args[args.length - 1]);
+          } else if (level === 60) {
+            log.error_("[SOCKET (FATAL)] => " + args[args.length - 1]);
           }
         },
       },
@@ -58,14 +66,14 @@ class WhatsappConnector {
       const { connection, lastDisconnect } = update;
 
       if (connection === "close") {
-        log.warn(
-          "[SESSION] => Sessão finalizada de forma inesperada! Re-iniciando em 1s...."
+        log.warn_(
+          "[SOCKET (WARN)] => Sessão finalizada de forma inesperada! Re-iniciando em 1s...."
         );
-        log.warn("[SESSION (ERROR)] => " + lastDisconnect.error);
+        log.warn_("[SOCKET (WARN)] => " + lastDisconnect.error);
 
         setTimeout(WhatsappConnector.connect, 1000);
       } else if (connection === "open") {
-        log.ok("[SESSION] => Sessão aberta...");
+        log.ok_("[SOCKET (INFO)] => Sessão aberta...");
       }
     });
 
