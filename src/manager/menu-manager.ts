@@ -11,7 +11,7 @@ export class MenuManager {
   public static async loadMenu() {
     if (MenuManager.isMiddleWeek() || true) {
       const [lunch, dinner] = await new RequestMenu().get();
-      const date = this.getCurrentDate().toLocaleDateString("pt-BR");
+      const date = MenuManager.formatCurrentDate(MenuManager.getCurrentDate());
 
       if (!fs.existsSync(`./models`)) {
         fs.mkdirSync(`./models`);
@@ -40,6 +40,14 @@ export class MenuManager {
     });
 
     return new Date(fortalezaTime);
+  }
+
+  public static formatCurrentDate(date: Date) {
+    const day = String(date.getMonth() + 1).padStart(2, "0");
+    const month = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
   }
 
   public static canReceiveNotificationInPrivateChat() {
