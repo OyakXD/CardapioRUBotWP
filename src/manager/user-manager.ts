@@ -3,11 +3,10 @@ import log from "log-beautify";
 import { MenuManager } from "./menu-manager";
 import schedule from "node-schedule";
 import { MenuParser } from "../parser/menu-parser";
+import { WhatsappConnector } from "..";
 
 export class UserManager {
   public static async initialize() {
-    //NOTA: puxa o cardapio depois usuarios, depois usa o MenuManager:canReceiveNotificationInPrivateChat() para ver se as pessoas que estão agendadas podem receber o cardapio no privado, se não manda so nos grupos,
-    //NOTA: UserManager::isChatPrivate() para ver se é privado ou não
 
     schedule.scheduleJob(
       { hour: 10, minute: 40, tz: "America/Fortaleza" },
@@ -16,7 +15,7 @@ export class UserManager {
       }
     );
     schedule.scheduleJob(
-      { hour: 16, minute: 30, tz: "America/Fortaleza" },
+      { hour: 19, minute: 38, tz: "America/Fortaleza" },
       () => {
         this.sendNotification("dinner");
       }
@@ -25,7 +24,7 @@ export class UserManager {
 
   public static async sendNotification(type: "lunch" | "dinner") {
     if (MenuManager.isMiddleWeek) {
-      const menu = MenuParser.mountMenu(type);
+      const menu = await MenuParser.mountMenu(type);
       const users = await this.getUsers();
 
       users.forEach(async (user: string) => {
@@ -35,7 +34,9 @@ export class UserManager {
               this.isChatPrivate(user)) ||
             !this.isChatPrivate(user)
           ) {
-            //TODO: Implement notification
+            WhatsappConnector.socket.sendMessage(user, {
+              text: menu,
+            })
           }
         }
       });
