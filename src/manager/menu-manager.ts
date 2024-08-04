@@ -30,11 +30,15 @@ export class MenuManager {
     return day > 1 && day < 5;
   }
 
-  public static getCurrentDate() {
-    return new Date();
-  }
-
   public static async getMenu() {
     return JSON.parse(fs.readFileSync(`./models/menu.json`, "utf-8"));
+  }
+
+  public static getCurrentDate() {
+    const fortalezaTime = new Date().toLocaleString("pt-BR", {
+      timeZone: "America/Fortaleza",
+    });
+
+    return new Date(fortalezaTime);
   }
 }

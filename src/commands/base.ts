@@ -30,10 +30,16 @@ export class commandHandler {
             await this.getMenuMessage(dinner),
           ]);
 
-          const getHourCurrent = this.getCurrentPeriod() === "lunch" ? "Bom dia" : 'Boa tarde';
+          const currentHour = MenuManager.getCurrentDate().getHours();
+          const periodMessage =
+            currentHour < 12
+              ? "Bom dia"
+              : currentHour < 18
+              ? "Boa tarde"
+              : "Boa noite";
 
           const message = [
-            `🍽 ${getHourCurrent} alunos! No cardápio de hoje (${date}) teremos: 🕛`,
+            `🍽 ${periodMessage} alunos! No cardápio de hoje (${date}) teremos: 🕛`,
             ``,
             `*Almoço:*`,
             "-".repeat(40),
@@ -82,9 +88,5 @@ export class commandHandler {
       });
     }
     return message.trim();
-  }
-
-  public getCurrentPeriod(){
-    return new Date().getHours() < 12 ? "lunch" : "dinner";
   }
 }
