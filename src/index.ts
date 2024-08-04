@@ -1,9 +1,7 @@
 import makeWASocket, { useMultiFileAuthState, WASocket } from "baileys";
 import log from "log-beautify";
 import Pino from "pino";
-import * as path from "path";
-import { writeFileSync } from "fs";
-import { commandHandler, prefix } from "./commands/base";
+import { commandHandler, prefix as CommandPrefix } from "./commands/base";
 
 class WhatsappConnector {
   private socket: WASocket | undefined;
@@ -11,7 +9,7 @@ class WhatsappConnector {
 
   constructor() {
     this.initialize();
-    this.commandHandler = new commandHandler(prefix);
+    this.commandHandler = new commandHandler(CommandPrefix);
   }
 
   public static async connect() {
@@ -37,7 +35,7 @@ class WhatsappConnector {
     this.socket = makeWASocket({
       printQRInTerminal: true,
       auth: authState,
-      //      logger: logger,
+      logger: logger,
     });
 
     this.socket.ev.on("connection.update", (update) => {
@@ -59,16 +57,24 @@ class WhatsappConnector {
 
     this.socket.ev.on("creds.update", saveCreds);
 
-
     this.socket.ev.on("messages.upsert", async ({ messages }) => {
-        for (const message of messages) {
-            if(!message.key.fromMe && message.message) {
-                const response = this.commandHandler.handle(message);
-                if(response){
-                    await this.socket?.sendMessage(message.key.remoteJid, {text: response});
-                }
-            }
+      for (const message of messages) {
+        if (!message.key.fromMe && message.message) {
+          const response = this.commandHandler.handle(message);
+
+          if (response) {
+            await this.socket?.sendMessage(
+              message.key.remoteJid,
+              {
+                text: response,
+              },
+              {
+                quoted: message,
+              }
+            );
+          }
         }
+      }
     });
   }
 }
