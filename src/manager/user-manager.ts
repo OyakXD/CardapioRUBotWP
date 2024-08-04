@@ -1,3 +1,4 @@
+import { proto } from "baileys";
 import * as fs from "fs";
 import log from "log-beautify";
 
@@ -59,5 +60,9 @@ export class UserManager {
       JSON.stringify(users, null, 2),
       "utf-8"
     );
+  }
+
+  public static isChatPrivate(messageKey: proto.IMessageKey) {
+    return messageKey.remoteJid!.includes("@s.whatsapp.net")!;
   }
 }

@@ -1,6 +1,7 @@
 import { proto, WASocket } from "baileys";
 import { MenuManager } from "../manager/menu-manager";
 import { UserManager } from "../manager/user-manager";
+import { MenuParser } from "../parser/menu-parser";
 
 export const prefix = "!";
 
@@ -30,34 +31,10 @@ export class commandHandler {
         case "cardápio":
           const { lunch, dinner, date } = await MenuManager.getMenu();
 
-          const [lunchMessage, dinnerMessage] = await Promise.all([
-            await this.getMenuMessage(lunch),
-            await this.getMenuMessage(dinner),
-          ]);
+          return MenuParser.mountMenuMessage(lunch, dinner, date);
 
-          const currentHour = MenuManager.getCurrentDate().getHours();
-          const periodMessage =
-            currentHour < 12
-              ? "Bom dia"
-              : currentHour < 18
-              ? "Boa tarde"
-              : "Boa noite";
-
-          const message = [
-            `🍽 ${periodMessage} alunos! No cardápio de hoje (${date}) teremos: 🕛`,
-            ``,
-            `*Almoço:*`,
-            "-".repeat(40),
-            lunchMessage,
-            ``,
-            `*Jantar:*`,
-            "-".repeat(40),
-            dinnerMessage,
-          ];
-
-          return message.join("\n").trim();
         case "toggle":
-          if (this.isChatPrivate(messageKey)) {
+          if (UserManager.isChatPrivate(messageKey)) {
             return "Esse comando só pode ser executado em grupo!";
           }
 
@@ -83,7 +60,7 @@ export class commandHandler {
             return "Agora o cardápio diário será enviado para esse grupo!";
           }
         case "start":
-          if (!this.isChatPrivate(messageKey)) {
+          if (!UserManager.isChatPrivate(messageKey)) {
             return "Esse comando só pode ser executado em uma conversa privada!";
           }
 
@@ -101,7 +78,7 @@ export class commandHandler {
             return "Você já está recebendo o cardápio diário!";
           }
         case "stop":
-          if (!this.isChatPrivate(messageKey)) {
+          if (!UserManager.isChatPrivate(messageKey)) {
             return "Esse comando só pode ser executado em uma conversa privada!";
           }
 
@@ -126,40 +103,5 @@ export class commandHandler {
     }
 
     return null;
-  }
-
-  public async getMenuMessage(menu: { [key: string]: string[] }) {
-    let message = "";
-
-    const emojis = {
-      Principal: ["🍛", "🍲"],
-      Vegetariano: "🌱",
-      Acompanhamento: ["🍚", "🍚", "🫘"],
-      Salada: "🥗",
-      Guarnição: "🍟",
-      Sobremesa: ["🍈", "🍬"],
-      Suco: "🍹",
-    };
-
-    for (const [category, itens] of Object.entries(menu)) {
-      message += `\n${category}: \n`;
-
-      const emojiCategory = emojis[category] || "";
-      const emojiList = Array.isArray(emojiCategory)
-        ? emojiCategory
-        : [emojiCategory];
-
-      itens.forEach((item, index) => {
-        const emoji = emojiList[index]! || "";
-        const itemMessage = `${item} ${emoji}`.trim();
-
-        message += `- ${itemMessage}\n`;
-      });
-    }
-    return message.trim();
-  }
-
-  public isChatPrivate(messageKey: proto.IMessageKey) {
-    return messageKey.remoteJid!.includes("@s.whatsapp.net")!;
   }
 }
