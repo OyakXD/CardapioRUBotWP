@@ -13,6 +13,10 @@ export class MenuManager {
       const [lunch, dinner] = await new RequestMenu().get();
       const date = this.getCurrentDate().toLocaleDateString("pt-BR");
 
+      if (!fs.existsSync(`./models`)) {
+        fs.mkdirSync(`./models`);
+      }
+
       fs.writeFileSync(
         `./models/menu.json`,
         JSON.stringify({ lunch, dinner, date }, null, 2)
