@@ -7,7 +7,6 @@ import { WhatsappConnector } from "..";
 
 export class UserManager {
   public static async initialize() {
-
     schedule.scheduleJob(
       { hour: 10, minute: 40, tz: "America/Fortaleza" },
       () => {
@@ -15,7 +14,7 @@ export class UserManager {
       }
     );
     schedule.scheduleJob(
-      { hour: 19, minute: 38, tz: "America/Fortaleza" },
+      { hour: 19, minute: 53, tz: "America/Fortaleza" },
       () => {
         this.sendNotification("dinner");
       }
@@ -36,7 +35,7 @@ export class UserManager {
           ) {
             WhatsappConnector.socket.sendMessage(user, {
               text: menu,
-            })
+            });
           }
         }
       });

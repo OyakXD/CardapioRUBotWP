@@ -6,7 +6,6 @@ export class MenuParser {
     dinner: { [key: string]: string[] },
     date: string
   ) {
-
     let message = [
       ...this.getMenuHead(date),
       ``,
@@ -18,25 +17,21 @@ export class MenuParser {
     return message.join("\n").trim();
   }
 
-  public static async mountMenu(
-    type: "lunch" | "dinner",
-  ) {
-
+  public static async mountMenu(type: "lunch" | "dinner") {
     const { lunch, dinner, date } = await MenuManager.getMenu();
 
-    let message = [...this.getMenuHead(date),``];
+    let message = [...this.getMenuHead(date), ``];
 
-    if(type === "dinner"){
-      message.concat(... await this.mountMenuOpcionalMessage("dinner", dinner))
-    } else if(type === "lunch"){
-      message.concat(... await this.mountMenuOpcionalMessage("lunch", lunch))
+    if (type === "lunch") {
+      message.push(...(await this.mountMenuOpcionalMessage("lunch", lunch)));
+    } else if (type === "dinner") {
+      message.push(...(await this.mountMenuOpcionalMessage("dinner", dinner)));
     }
 
     return message.join("\n").trim();
   }
 
-
-  public static getMenuHead(date: string){
+  public static getMenuHead(date: string) {
     const currentHour = MenuManager.getCurrentDate().getHours();
     const periodMessage =
       currentHour < 12
@@ -45,8 +40,9 @@ export class MenuParser {
         ? "Boa tarde"
         : "Boa noite";
 
-      return [`🍽 ${periodMessage} alunos! No cardápio de hoje (${date}) teremos: 🕛`];
-    
+    return [
+      `🍽 ${periodMessage} alunos! No cardápio de hoje (${date}) teremos: 🕛`,
+    ];
   }
 
   public static async getMenuMessage(menu: { [key: string]: string[] }) {
@@ -81,12 +77,17 @@ export class MenuParser {
     return message.trim();
   }
 
-  public static async mountMenuOpcionalMessage(type: "lunch" | "dinner", menu: { [key: string]: string[] }) {
-   const menuMessage = await this.getMenuMessage(menu);
-    if(type === "lunch"){
-      return `*Almoço:* \n ${"=".repeat(28)} \n${menuMessage}`;
-    } else if(type === "dinner"){
-      return `*Jantar:* \n ${"=".repeat(28)} \n${menuMessage}`;
-    }
+  public static async mountMenuOpcionalMessage(
+    type: "lunch" | "dinner",
+    menu: { [key: string]: string[] }
+  ) {
+    const menuMessage = await this.getMenuMessage(menu);
+
+    return [
+      type === "lunch" ? "*Almoço:*" : "*Jantar:*",
+      ``,
+      `=`.repeat(28),
+      menuMessage,
+    ];
   }
 }
