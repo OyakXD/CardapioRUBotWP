@@ -1,8 +1,6 @@
 import { RequestMenu } from "../request/get-menu";
 import * as fs from "fs";
 
-export type MENU_TYPES = ["lunch", "dinner"];
-
 export class MenuManager {
   public static async initialize() {
     setTimeout(this.loadMenu, 1000 * 60 * 6);
