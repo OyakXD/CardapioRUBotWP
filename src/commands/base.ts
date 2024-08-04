@@ -1,13 +1,55 @@
-import { proto } from "baileys";
+import { proto, WASocket } from "baileys";
 import { MenuManager } from "../manager/menu-manager";
+import fs from "fs";
 
 export const prefix = "!";
 
 export class commandHandler {
   private prefix: string;
+  private socket: WASocket;
+  private reminderUsers: Set<String>;
+  private reminderInterval: NodeJS.Timeout;
+
 
   constructor(prefix: string) {
     this.prefix = prefix || "!";
+    this.reminderUsers = this.loadReminderUsers();
+    this.startReminders();
+  }
+
+  private loadReminderUsers(): Set<string> {
+      try{
+        const data = fs.readFileSync("users.json", "utf-8");
+        const users = JSON.parse(data);
+        return new Set(users);
+      } catch (error) {
+        console.error("Erro ao carregar os usuarios", error);
+        return new Set();
+      }
+  }
+
+  private saveReminderUsers(){
+    try {
+      const users = Array.from(this.reminderUsers);
+      fs.writeFileSync("users.json", JSON.stringify(users, null, 2), "utf-8");
+    } catch (error) {
+      console.error("Erro ao salvar os usuarios", error);
+    }
+  }
+
+  private startReminders(): void {
+    const intervalMs = 3600000;
+
+    this.reminderInterval = setInterval(() => {
+      this.sendReminders();
+    }, intervalMs);
+  }
+
+  private async sendReminders(): Promise<void> {
+    const reminderMessage = "Não se esqueça de agender o almoçar e jantar!";
+    for(const userId of this.reminderUsers){
+      await this.socket.sendMessage(userId, {text: reminderMessage});
+    }
   }
 
   public async handle({ message }: proto.IWebMessageInfo) {
@@ -51,6 +93,11 @@ export class commandHandler {
           ];
 
           return message.join("\n").trim();
+          case "notificacao":
+          const userId = message.keys.remoteJid!;
+          this.reminderUsers.add(userId);
+          this.saveReminderUsers();
+          return "Você será lembrado de agendar o almoço e jantar todos os dias!";
         default:
           return "Comando não encontrado";
       }
