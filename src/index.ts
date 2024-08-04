@@ -60,6 +60,11 @@ class WhatsappConnector {
         /** caching makes the store faster to send/recv messages */
         keys: makeCacheableSignalKeyStore(authState.keys, logger),
       },
+      shouldIgnoreJid: (jid: string) => {
+        return (
+          jid && (!jid.endsWith("@s.whatsapp.net") || !jid.endsWith("@c.us"))
+        );
+      },
     });
 
     this.socket.ev.on("connection.update", (update) => {
@@ -86,7 +91,6 @@ class WhatsappConnector {
 
       for (const message of messages) {
         if (message.key.fromMe && message.message) {
-          if (message.key.remoteJid === "status@broadcast") return;
           if (message.message?.pollUpdateMessage) return;
 
           const response = await this.commandHandler.handle(
