@@ -36,13 +36,13 @@ class WhatsappConnector {
           const message = args[args.length - 1];
 
           if (level === 30) {
-            log.ok_("[SOCKET (INFO)] => " + args[args.length - 1]);
+            log.ok_("[SOCKET (INFO)] => " + message);
           } else if (level === 40) {
-            log.warn_("[SOCKET (WARN)] => " + args[args.length - 1]);
+            log.warn_("[SOCKET (WARN)] => " + message);
           } else if (level === 50) {
-            log.error_("[SOCKET (ERROR)] => " + args[args.length - 1]);
+            log.error_("[SOCKET (ERROR)] => " + message);
           } else if (level === 60) {
-            log.error_("[SOCKET (FATAL)] => " + args[args.length - 1]);
+            log.error_("[SOCKET (FATAL)] => " + message);
           }
         },
       },
