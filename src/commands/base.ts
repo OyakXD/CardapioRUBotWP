@@ -34,7 +34,7 @@ export class commandHandler {
           return MenuParser.mountMenuMessage(lunch, dinner, date);
 
         case "toggle":
-          if (UserManager.isChatPrivate(messageKey)) {
+          if (UserManager.isChatPrivate(userId)) {
             return "Esse comando só pode ser executado em grupo!";
           }
 
@@ -60,7 +60,7 @@ export class commandHandler {
             return "Agora o cardápio diário será enviado para esse grupo!";
           }
         case "start":
-          if (!UserManager.isChatPrivate(messageKey)) {
+          if (!UserManager.isChatPrivate(userId)) {
             return "Esse comando só pode ser executado em uma conversa privada!";
           }
 
@@ -78,7 +78,7 @@ export class commandHandler {
             return "Você já está recebendo o cardápio diário!";
           }
         case "stop":
-          if (!UserManager.isChatPrivate(messageKey)) {
+          if (!UserManager.isChatPrivate(userId)) {
             return "Esse comando só pode ser executado em uma conversa privada!";
           }
 
