@@ -29,4 +29,8 @@ export class MenuManager {
   public static getCurrentDate() {
     return new Date();
   }
+
+  public static async getMenu() {
+    return JSON.parse(fs.readFileSync(`./models/menu.json`, "utf-8"));
+  }
 }

@@ -1,4 +1,5 @@
 import { proto } from "baileys";
+import { MenuManager } from "../manager/menu-manager";
 
 export const prefix = "!";
 
@@ -9,7 +10,7 @@ export class commandHandler {
     this.prefix = prefix || "!";
   }
 
-  public handle({ message }: proto.IWebMessageInfo) {
+  public async handle({ message }: proto.IWebMessageInfo) {
     const body = message.extendedTextMessage?.text || "";
 
     if (body.startsWith(this.prefix)) {
@@ -20,12 +21,29 @@ export class commandHandler {
         case "amor":
           return "Você é muito especial para mim!";
         case "cardapio":
-          return "Vai almoçar no RU, é?";
+        case "Cardápio":
+        const { lunch, dinner } = await MenuManager.getMenu(); 
+        return "Almoço: \n" + await this.getMenuMessage(lunch) + "Jantar: \n" + await this.getMenuMessage(dinner);
         default:
           return "Comando não encontrado";
       }
     }
 
     return null;
+  }
+
+  public async getMenuMessage(menu: { [key: string]: string[] }){
+    let message = "";
+
+    for(const[category, itens] of Object.entries(menu)){
+      message += `${category}: \n`;
+
+      itens.forEach((item) => {
+        message += `- ${item}\n`;
+      });
+
+      message += "\n";
+    }
+    return message;
   }
 }
