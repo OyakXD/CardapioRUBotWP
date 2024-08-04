@@ -1,9 +1,10 @@
 import { MenuManager } from "../manager/menu-manager";
+import { Menu } from "../types/types";
 
 export class MenuParser {
   public static async mountMenuMessage(
-    lunch: { [key: string]: string[] },
-    dinner: { [key: string]: string[] },
+    lunch: Menu,
+    dinner: Menu,
     date: string
   ) {
     let message = [
@@ -45,7 +46,7 @@ export class MenuParser {
     ];
   }
 
-  public static async getMenuMessage(menu: { [key: string]: string[] }) {
+  public static async getMenuMessage(menu: Menu) {
     let message = "";
 
     const emojis = {
@@ -79,7 +80,7 @@ export class MenuParser {
 
   public static async mountMenuOpcionalMessage(
     type: "lunch" | "dinner",
-    menu: { [key: string]: string[] }
+    menu: Menu
   ) {
     const menuMessage = await this.getMenuMessage(menu);
 

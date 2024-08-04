@@ -1,5 +1,6 @@
 import axios from "axios";
 import cheerio, { Cheerio, Element } from "cheerio";
+import { Menu, ParserCategory } from "../types/types";
 
 export const previewMenuURL =
   "https://www.ufc.br/restaurante/cardapio/1-restaurante-universitario-de-fortaleza/2024-08-05";
@@ -7,7 +8,7 @@ export const previewMenuURL =
 export class RequestMenu {
   private menuURL: string = previewMenuURL;
 
-  public async get(): Promise<{ [key: string]: string[] }[]> {
+  public async get(): Promise<Menu[] | null[]> {
     const [lunch, dinner] = await this.request();
 
     if (!lunch || !dinner) {
@@ -40,7 +41,7 @@ export class RequestMenu {
   }
 
   public async parser(menu: Cheerio<Element>) {
-    const categories: { [key: string]: string[] } = {
+    const categories: ParserCategory = {
       Principal: [],
       Vegetariano: [],
       Salada: [],
@@ -69,7 +70,7 @@ export class RequestMenu {
       }
     });
 
-    const formatedJson: { [key: string]: string[] } = {};
+    const formatedJson: ParserCategory = {};
 
     for (const [category, itens] of Object.entries(categories)) {
       formatedJson[category] = [];

@@ -1,5 +1,6 @@
 import { RequestMenu } from "../request/get-menu";
 import * as fs from "fs";
+import { ParserMenu } from "../types/types";
 
 export class MenuManager {
   public static async initialize() {
@@ -30,7 +31,7 @@ export class MenuManager {
     return day > 1 && day < 5;
   }
 
-  public static async getMenu() {
+  public static async getMenu(): Promise<ParserMenu> {
     return JSON.parse(fs.readFileSync(`./models/menu.json`, "utf-8"));
   }
 
