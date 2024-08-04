@@ -40,7 +40,7 @@ class WhatsappConnectorInstance {
           if (level === 30) {
             log.ok_("[SOCKET (INFO)] => " + message);
           } else if (level === 40) {
-            log.warn_("[SOCKET (WARN)] => " + message);
+            //log.warn_("[SOCKET (WARN)] => " + message);
           } else if (level === 50) {
             log.error_("[SOCKET (ERROR)] => " + message);
           } else if (level === 60) {
