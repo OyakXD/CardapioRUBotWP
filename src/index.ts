@@ -87,6 +87,10 @@ class WhatsappConnector {
           );
 
           if (response) {
+            if (this.readMessageOnReceive()) {
+              await this.socket!.readMessages([message.key]);
+            }
+
             await this.socket?.sendMessage(
               message.key.remoteJid,
               {
@@ -100,6 +104,10 @@ class WhatsappConnector {
         }
       }
     });
+  }
+
+  public readMessageOnReceive() {
+    return true;
   }
 }
 
