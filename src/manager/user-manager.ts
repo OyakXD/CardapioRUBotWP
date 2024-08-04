@@ -9,6 +9,7 @@ export class UserManager {
     //NOTA: não esquece do timezone
     //NOTA: Não esquece de ver se está no meio de semana, se não estiver nem tenta puxar o cardapio e etc...
     //NOTA: puxa o cardapio depois usuarios, depois usa o MenuManager:canReceiveNotificationInPrivateChat() para ver se as pessoas que estão agendadas podem receber o cardapio no privado, se não manda so nos grupos,
+    //NOTA: UserManager::isChatPrivate() para ver se é privado ou não
   }
 
   public static async canReceiveNotification(userId: string) {
