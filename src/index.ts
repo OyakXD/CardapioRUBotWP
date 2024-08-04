@@ -40,6 +40,7 @@ class WhatsappConnector {
       printQRInTerminal: true,
       auth: authState,
       logger: logger,
+      markOnlineOnConnect: false,
     });
 
     this.socket.ev.on("connection.update", (update) => {
@@ -61,9 +62,16 @@ class WhatsappConnector {
 
     this.socket.ev.on("creds.update", saveCreds);
 
-    this.socket.ev.on("messages.upsert", async ({ messages }) => {
+    this.socket.ev.on("messages.upsert", async ({ messages, type }) => {
+      if (type !== "notify") {
+        return;
+      }
+
       for (const message of messages) {
-        if (!message.key.fromMe && message.message) {
+        if (message.key.fromMe && message.message) {
+          if (message.key.remoteJid === "status@broadcast") return;
+          if (message.message?.pollUpdateMessage) return;
+
           const response = await this.commandHandler.handle(message);
 
           if (response) {
