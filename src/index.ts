@@ -92,7 +92,7 @@ class WhatsappConnectorInstance {
       }
 
       for (const message of messages) {
-        if (!message.key.fromMe && message.message) {
+        if (message.message) {
           if (message.message?.pollUpdateMessage) return;
 
           const response = await this.commandHandler.handle(

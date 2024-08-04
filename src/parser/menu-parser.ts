@@ -10,9 +10,9 @@ export class MenuParser {
     let message = [
       ...this.getMenuHead(date),
       ``,
-      await this.mountMenuOpcionalMessage("lunch", lunch),
+      ...(await this.mountMenuOpcionalMessage("lunch", lunch)),
       ``,
-      await this.mountMenuOpcionalMessage("dinner", dinner),
+      ...(await this.mountMenuOpcionalMessage("dinner", dinner)),
     ];
 
     return message.join("\n").trim();
