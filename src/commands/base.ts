@@ -30,8 +30,10 @@ export class commandHandler {
             await this.getMenuMessage(dinner),
           ]);
 
+          const getHourCurrent = this.getCurrentPeriod() === "lunch" ? "Bom dia" : 'Boa tarde';
+
           const message = [
-            `🍽 Bom dia alunos! No cardápio de hoje (${date}) teremos: 🕛`,
+            `🍽 ${getHourCurrent} alunos! No cardápio de hoje (${date}) teremos: 🕛`,
             ``,
             `*Almoço:*`,
             "-".repeat(40),
@@ -80,5 +82,9 @@ export class commandHandler {
       });
     }
     return message.trim();
+  }
+
+  public getCurrentPeriod(){
+    return new Date().getHours() < 12 ? "lunch" : "dinner";
   }
 }
