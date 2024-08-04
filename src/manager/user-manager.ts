@@ -2,6 +2,10 @@ import * as fs from "fs";
 import log from "log-beautify";
 
 export class UserManager {
+  public static async initialize() {
+    //TODO: fazer o sistema de enviar notificação as 10:40(Almoço) e 16:40 (Jantar)
+  }
+
   public static async canReceiveNotification(userId: string) {
     try {
       return (await this.getUsers()).includes(userId);
