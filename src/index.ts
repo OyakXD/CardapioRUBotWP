@@ -63,9 +63,7 @@ class WhatsappConnector {
         );
         log.warn("[SESSION (ERROR)] => " + lastDisconnect.error);
 
-        setTimeout(() => {
-          WhatsappConnector.connect();
-        }, 1000);
+        setTimeout(WhatsappConnector.connect, 1000);
       } else if (connection === "open") {
         log.ok("[SESSION] => Sessão aberta...");
       }
