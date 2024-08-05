@@ -1,4 +1,5 @@
 import makeWASocket, {
+  DisconnectReason,
   makeCacheableSignalKeyStore,
   useMultiFileAuthState,
   WASocket,
@@ -8,6 +9,7 @@ import Pino from "pino";
 import { commandHandler, prefix as CommandPrefix } from "./commands/base";
 import { MenuManager } from "./manager/menu-manager";
 import { UserManager } from "./manager/user-manager";
+import { Boom } from "@hapi/boom";
 
 class WhatsappConnectorInstance {
   public socket: WASocket | undefined;
@@ -73,12 +75,19 @@ class WhatsappConnectorInstance {
       const { connection, lastDisconnect } = update;
 
       if (connection === "close") {
-        log.warn_(
-          "[SOCKET (WARN)] => Sessão finalizada de forma inesperada! Re-iniciando em 1s...."
-        );
-        log.warn_("[SOCKET (WARN)] => " + lastDisconnect.error);
+        const shouldReconnect =
+          (lastDisconnect.error as Boom)?.output?.statusCode !==
+          DisconnectReason.loggedOut;
 
-        setTimeout(WhatsappConnectorInstance.connect, 1000);
+        log.warn_(
+          "connection closed due to",
+          lastDisconnect.error,
+          ", reconnecting",
+          shouldReconnect
+        );
+        if (shouldReconnect) {
+          WhatsappConnectorInstance.connect();
+        }
       } else if (connection === "open") {
         log.ok_("[SOCKET (INFO)] => Sessão aberta...");
       }
