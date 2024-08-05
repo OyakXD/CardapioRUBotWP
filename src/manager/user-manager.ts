@@ -28,6 +28,10 @@ export class UserManager {
         this.getUsers(),
       ]);
 
+      if (!menu) {
+        return;
+      }
+
       for (const user of users as string[]) {
         if (await this.canReceiveNotification(user)) {
           if (

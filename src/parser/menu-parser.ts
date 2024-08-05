@@ -47,6 +47,10 @@ export class MenuParser {
   }
 
   public static async getMenuMessage(menu: Menu) {
+    if (!menu) {
+      return "Não foi possível obter o cardápio.";
+    }
+
     let message = "";
 
     const emojis = {

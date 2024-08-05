@@ -3,7 +3,7 @@ import cheerio, { Cheerio, Element } from "cheerio";
 import { Menu, ParserCategory } from "../types/types";
 
 export const previewMenuURL =
-  "https://www.ufc.br/restaurante/cardapio/1-restaurante-universitario-de-fortaleza/2024-08-05";
+  "https://www.ufc.br/restaurante/cardapio/5-restaurante-universitario-de-quixada";
 
 export class RequestMenu {
   private menuURL: string = previewMenuURL;

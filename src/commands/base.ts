@@ -30,6 +30,10 @@ export class commandHandler {
         case "cardapio":
         case "cardápio":
           const { lunch, dinner, date } = await MenuManager.getMenu();
+
+          if (!lunch || !dinner) {
+            return "Não há cardápio cadastrado para este dia. A publicação poderá ser feita posteriormente ou pode não haver expediente no restaurante universitário neste dia.";
+          }
           return MenuParser.mountMenuMessage(lunch, dinner, date);
         case "toggle":
           if (UserManager.isChatPrivate(userId)) {
