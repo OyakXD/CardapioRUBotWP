@@ -7,7 +7,7 @@
 ![Bitbucket open issues](https://img.shields.io/bitbucket/issues/iuricode/README-template?style=for-the-badge)
 ![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/iuricode/README-template?style=for-the-badge)
 
-<img src="https://imgur.com/SSjM6K5" alt="Exemplo imagem">
+<img src="https://i.imgur.com/SSjM6K5.png" alt="Exemplo imagem">
 
 > Exemplo de uso do bot.
 
