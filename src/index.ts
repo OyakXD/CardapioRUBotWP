@@ -121,7 +121,7 @@ class WhatsappConnectorInstance {
   }
 
   public readMessageOnReceive() {
-    return true;
+    return false;
   }
 }
 
