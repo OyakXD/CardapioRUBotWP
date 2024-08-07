@@ -107,7 +107,11 @@ class WhatsappConnectorInstance {
           WhatsappConnectorInstance.connect();
         }
       } else if (connection === "open") {
-        log.ok_("[SOCKET (INFO)] => Sessão aberta...");
+        log.ok_(
+          `[SOCKET (INFO)] => Sessão aberta(${
+            this.socket.user.id.split(":")[0]
+          })`
+        );
       }
     });
 
