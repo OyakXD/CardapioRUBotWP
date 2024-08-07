@@ -1,5 +1,6 @@
 import makeWASocket, {
   DisconnectReason,
+  fetchLatestWaWebVersion,
   makeCacheableSignalKeyStore,
   useMultiFileAuthState,
   WASocket,
@@ -25,11 +26,26 @@ class WhatsappConnectorInstance {
   }
 
   public async initialize() {
-    const [, , multiAuthState] = await Promise.all([
+    const [, , multiAuthState, waWebVersion] = await Promise.all([
       MenuManager.initialize(),
       UserManager.initialize(),
       useMultiFileAuthState("auth_session"),
+      fetchLatestWaWebVersion({}),
     ]);
+
+    const { version, isLatest, error } = waWebVersion;
+
+    if (error) {
+      return log.error_(
+        "[SOCKET (ERROR)] => Erro ao buscar a versão mais recente do WhatsApp Web"
+      );
+    }
+
+    if (!isLatest) {
+      log.warn_(
+        `[SOCKET (WARN)] => A versão do WhatsApp Web está desatualizada. Versão atual: ${version}`
+      );
+    }
 
     const { state: authState, saveCreds } = multiAuthState;
 
@@ -53,7 +69,7 @@ class WhatsappConnectorInstance {
     });
 
     this.socket = makeWASocket({
-      version: [2, 3000, 1014090025],
+      version,
       printQRInTerminal: true,
       logger: logger,
       markOnlineOnConnect: false,
