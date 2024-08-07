@@ -53,6 +53,7 @@ class WhatsappConnectorInstance {
     });
 
     this.socket = makeWASocket({
+      version: [2, 3000, 1014090025],
       printQRInTerminal: true,
       logger: logger,
       markOnlineOnConnect: false,
