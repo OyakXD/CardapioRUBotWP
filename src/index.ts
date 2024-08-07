@@ -65,6 +65,7 @@ class WhatsappConnectorInstance {
         /** caching makes the store faster to send/recv messages */
         keys: makeCacheableSignalKeyStore(authState.keys, logger),
       },
+      browser: ["Ubuntu", "Chrome", "20.0.04"],
       shouldIgnoreJid: (jid: string) => {
         return (
           jid && !jid.endsWith("@s.whatsapp.net") && !jid.endsWith("@g.us")
