@@ -2,7 +2,7 @@ import { proto, WASocket } from "baileys";
 import { MenuManager } from "../manager/menu-manager";
 import { UserManager } from "../manager/user-manager";
 import { MenuParser } from "../parser/menu-parser";
-
+import * as fs from "fs";
 
 export const prefix = "!";
 
@@ -13,10 +13,8 @@ export class commandHandler {
     this.prefix = prefix || "!";
   }
 
-  public async handle(
-    { message, key: messageKey }: proto.IWebMessageInfo,
-    socket: WASocket
-  ) {
+  public async handle(messageInfo: proto.IWebMessageInfo, socket: WASocket) {
+    const { message, key: messageKey } = messageInfo;
     const body =
       message.extendedTextMessage?.text || message.conversation || "";
 
@@ -110,9 +108,16 @@ export class commandHandler {
             `- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
             `- \`!stop\` Pare de receber o cardápio diariamente!`,
           ];
-        case "xandao": 
-          
-          return message.join("\n").trim();
+        case "xandao":
+          await socket.sendMessage(
+            messageKey.remoteJid,
+            {
+              image: fs.readFileSync("images/xandao.jpg"),
+              caption: "Xandão é o cara! 😎",
+            },
+            { quoted: messageInfo }
+          );
+          break;
       }
     }
 
