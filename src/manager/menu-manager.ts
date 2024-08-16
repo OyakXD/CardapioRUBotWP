@@ -10,9 +10,11 @@ export class MenuManager {
   }
 
   public static async loadMenu() {
-    if (MenuManager.isMiddleWeek() || true) {
+    if (MenuManager.isMiddleWeek()) {
       const [lunch, dinner] = await new RequestMenu().get();
       const date = MenuManager.formatCurrentDate(MenuManager.getCurrentDate());
+
+      console.log(date);
 
       if (!fs.existsSync(`./models`)) {
         fs.mkdirSync(`./models`);
@@ -36,16 +38,12 @@ export class MenuManager {
   }
 
   public static getCurrentDate() {
-    const fortalezaTime = new Date().toLocaleString("pt-BR", {
-      timeZone: "America/Fortaleza",
-    });
-
-    return new Date(fortalezaTime);
+    return new Date();
   }
 
   public static formatCurrentDate(date: Date) {
-    const day = String(date.getMonth() + 1).padStart(2, "0");
-    const month = String(date.getDate()).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
 
     return `${day}/${month}/${year}`;
