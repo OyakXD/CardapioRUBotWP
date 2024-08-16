@@ -3,6 +3,7 @@ import { MenuManager } from "../manager/menu-manager";
 import { UserManager } from "../manager/user-manager";
 import { MenuParser } from "../parser/menu-parser";
 
+
 export const prefix = "!";
 
 export class commandHandler {
@@ -109,6 +110,8 @@ export class commandHandler {
             `- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
             `- \`!stop\` Pare de receber o cardápio diariamente!`,
           ];
+        case "xandao": 
+          
           return message.join("\n").trim();
       }
     }
