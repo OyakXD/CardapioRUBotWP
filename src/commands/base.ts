@@ -108,6 +108,7 @@ export class commandHandler {
             `- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
             `- \`!stop\` Pare de receber o cardápio diariamente!`,
           ];
+          return message.join("\n").trim();
         case "xandao":
           await socket.sendMessage(
             messageKey.remoteJid,
