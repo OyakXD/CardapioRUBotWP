@@ -21,7 +21,7 @@
     "@hapi/boom": "^10.0.1",
     "axios": "^1.7.3",
     "baileys": "github:WhiskeySockets/Baileys",
-    "cheerio": "^1.0.0-rc.12",
+    "cheerio": "1.0.0-rc.12",
     "log-beautify": "^1.2.0",
     "node-schedule": "^2.1.1",
     "qrcode-terminal": "^0.12.0"

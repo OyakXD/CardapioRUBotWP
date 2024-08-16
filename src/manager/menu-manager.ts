@@ -11,10 +11,8 @@ export class MenuManager {
 
   public static async loadMenu() {
     if (MenuManager.isMiddleWeek()) {
-      const [lunch, dinner] = await new RequestMenu().get();
+      const [lunch, dinner] = await RequestMenu.get();
       const date = MenuManager.formatCurrentDate(MenuManager.getCurrentDate());
-
-      console.log(date);
 
       if (!fs.existsSync(`./models`)) {
         fs.mkdirSync(`./models`);
@@ -30,7 +28,7 @@ export class MenuManager {
   public static isMiddleWeek() {
     let day = this.getCurrentDate().getDay();
 
-    return day > 1 && day < 5;
+    return day >= 1 && day <= 5;
   }
 
   public static async getMenu(): Promise<ParserMenu> {

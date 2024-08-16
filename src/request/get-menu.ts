@@ -6,9 +6,7 @@ export const previewMenuURL =
   "https://www.ufc.br/restaurante/cardapio/5-restaurante-universitario-de-quixada";
 
 export class RequestMenu {
-  private menuURL: string = previewMenuURL;
-
-  public async get(): Promise<Menu[] | null[]> {
+  public static async get(): Promise<Menu[] | null[]> {
     const [lunch, dinner] = await this.request();
 
     if (!lunch || !dinner) {
@@ -18,9 +16,9 @@ export class RequestMenu {
     return await Promise.all([this.parser(lunch), this.parser(dinner)]);
   }
 
-  public async request() {
+  public static async request() {
     try {
-      const response = await axios.get(this.menuURL);
+      const response = await axios.get(previewMenuURL);
 
       if (response.status !== 200) {
         return null;
@@ -40,7 +38,7 @@ export class RequestMenu {
     return [null, null];
   }
 
-  public async parser(menu: Cheerio<Element>) {
+  public static async parser(menu: Cheerio<Element>) {
     const categories: ParserCategory = {
       Principal: [],
       Vegetariano: [],
