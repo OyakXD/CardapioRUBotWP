@@ -11,6 +11,7 @@ import { commandHandler, prefix as CommandPrefix } from "./commands/base";
 import { MenuManager } from "./manager/menu-manager";
 import { UserManager } from "./manager/user-manager";
 import { Boom } from "@hapi/boom";
+import Ack from "./utils/ack";
 
 class WhatsappConnectorInstance {
   public socket: WASocket | undefined;
@@ -54,6 +55,10 @@ class WhatsappConnectorInstance {
       hooks: {
         logMethod: (args, method, level) => {
           const message = args[args.length - 1];
+
+          if (Ack.received(message)) {
+            return;
+          }
 
           if (level === 30) {
             log.ok_("[SOCKET (INFO)] => " + message);
