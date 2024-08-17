@@ -1,4 +1,9 @@
-import { proto, WASocket } from "baileys";
+import {
+  generateLinkPreviewIfRequired,
+  getUrlInfo,
+  proto,
+  WASocket,
+} from "baileys";
 import { MenuManager } from "../manager/menu-manager";
 import { UserManager } from "../manager/user-manager";
 import { MenuParser } from "../parser/menu-parser";
@@ -9,6 +14,7 @@ export const prefix = "!";
 
 export class commandHandler {
   private prefix: string;
+  private thumbnailOfGithub: Buffer;
 
   constructor(prefix: string) {
     this.prefix = prefix || "!";
@@ -135,13 +141,42 @@ export class commandHandler {
           break;
         case "codigo":
         case "github":
+          // const urlContent = await getUrlInfo(
+          //   "https://github.com/OyakXD/CardapioRUBotWP"
+          // );
+
+          // const linkPreview = {
+          //   ...urlContent,
+          //   jpegThumbnail: Buffer.from(
+          //     await (await fetch(urlContent.originalThumbnailUrl)).arrayBuffer()
+          //   ),
+          // };
+
+          if (!this.thumbnailOfGithub) {
+            this.thumbnailOfGithub = Buffer.from(
+              await (
+                await fetch(
+                  "https://avatars.githubusercontent.com/u/131064997?v=4"
+                )
+              ).arrayBuffer()
+            );
+          }
+
           await socket.sendMessage(
             messageKey.remoteJid,
             {
-            text: "https://github.com/OyakXD/CardapioRUBotWP"
+              text: "https://github.com/OyakXD/CardapioRUBotWP",
+              linkPreview: {
+                "matched-text": "https://github.com/OyakXD/CardapioRUBotWP",
+                "canonical-url": "https://github.com/OyakXD/CardapioRUBotWP",
+                description:
+                  "Contribute to OyakXD/CardapioRUBotWP development by creating an account on GitHub.",
+                title: "GitHub - OyakXD/CardapioRUBotWP",
+                jpegThumbnail: this.thumbnailOfGithub,
+              },
             },
             { quoted: messageInfo }
-        );
+          );
       }
     }
 

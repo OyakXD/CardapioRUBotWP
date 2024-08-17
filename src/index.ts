@@ -2,7 +2,10 @@ import makeWASocket, {
   DisconnectReason,
   fetchLatestWaWebVersion,
   makeCacheableSignalKeyStore,
+  makeInMemoryStore,
+  proto,
   useMultiFileAuthState,
+  WAMessageContent,
   WASocket,
 } from "baileys";
 import log from "log-beautify";
@@ -73,13 +76,19 @@ class WhatsappConnectorInstance {
       },
     });
 
+    const store = makeInMemoryStore({ logger });
+
+    store.readFromFile("baileys_store_multi.json");
+    setInterval(() => store.writeToFile("baileys_store_multi.json"), 10_000);
+
     this.socket = makeWASocket({
       version,
       printQRInTerminal: true,
       logger: logger,
       markOnlineOnConnect: false,
       syncFullHistory: false,
-      shouldSyncHistoryMessage: () => false,
+      shouldSyncHistoryMessage: () => true,
+      generateHighQualityLinkPreview: true,
       mobile: false,
       auth: {
         creds: authState.creds,
@@ -92,7 +101,20 @@ class WhatsappConnectorInstance {
           jid && !jid.endsWith("@s.whatsapp.net") && !jid.endsWith("@g.us")
         );
       },
+      getMessage: async (
+        key: proto.IMessageKey
+      ): Promise<WAMessageContent | undefined> => {
+        if (store) {
+          const message = await store.loadMessage(key.remoteJid!, key.id!);
+          return message?.message || undefined;
+        }
+
+        // only if store is present
+        return proto.Message.fromObject({});
+      },
     });
+
+    store.bind(this.socket.ev);
 
     this.socket.ev.on("connection.update", (update) => {
       const { connection, lastDisconnect } = update;
