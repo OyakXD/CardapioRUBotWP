@@ -10,10 +10,10 @@ export class MenuManager {
   }
 
   public static async loadMenu() {
-    if (MenuManager.isMiddleWeek()) {
-      const [lunch, dinner] = await RequestMenu.get();
       const date = MenuManager.formatCurrentDate(MenuManager.getCurrentDate());
-
+      const isMiddleWeek = MenuManager.isMiddleWeek();
+      const [lunch, dinner] = isMiddleWeek ? await RequestMenu.get() : [null, null];
+   
       if (!fs.existsSync(`./models`)) {
         fs.mkdirSync(`./models`);
       }
@@ -22,7 +22,6 @@ export class MenuManager {
         `./models/menu.json`,
         JSON.stringify({ lunch, dinner, date }, null, 2)
       );
-    }
   }
 
   public static isMiddleWeek() {
