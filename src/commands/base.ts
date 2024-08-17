@@ -3,6 +3,7 @@ import { MenuManager } from "../manager/menu-manager";
 import { UserManager } from "../manager/user-manager";
 import { MenuParser } from "../parser/menu-parser";
 import * as fs from "fs";
+import log from "log-beautify";
 
 export const prefix = "!";
 
@@ -22,6 +23,11 @@ export class commandHandler {
       const args = body.slice(this.prefix.length).trim().split(" ");
       const command = args.shift()?.toLowerCase();
       const userId = messageKey.remoteJid!;
+      const chatPrivate = UserManager.isChatPrivate(userId);
+      const userJid = chatPrivate ? userId : messageKey.participant!;
+      const userPhone = userJid.split("@")[0];
+
+      log.info_(`[SOCKET (INFO)] => ${userPhone} => /${command}`);
 
       switch (command) {
         case "amor":
@@ -35,7 +41,7 @@ export class commandHandler {
           }
           return MenuParser.mountMenuMessage(lunch, dinner, date);
         case "toggle":
-          if (UserManager.isChatPrivate(userId)) {
+          if (chatPrivate) {
             return "Esse comando só pode ser executado em grupo! 😅";
           }
 
@@ -61,7 +67,7 @@ export class commandHandler {
             return "Agora o cardápio diário será enviado para esse grupo! 🥳";
           }
         case "start":
-          if (!UserManager.isChatPrivate(userId)) {
+          if (!chatPrivate) {
             return "Esse comando só pode ser executado em uma conversa privada! 😅";
           }
 
@@ -79,7 +85,7 @@ export class commandHandler {
             return "Você já está recebendo o cardápio diário! 😅";
           }
         case "stop":
-          if (!UserManager.isChatPrivate(userId)) {
+          if (!chatPrivate) {
             return "Esse comando só pode ser executado em uma conversa privada! 😅";
           }
 
