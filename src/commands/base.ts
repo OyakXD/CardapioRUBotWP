@@ -113,6 +113,7 @@ export class commandHandler {
             `- \`!cardapio\` Veja o cardápio do dia!`,
             `- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
             `- \`!stop\` Pare de receber o cardápio diariamente!`,
+            `- \`!codigo ou !github\` Para ver o repositorio do bot!`,
           ];
           return message.join("\n").trim();
         case "xandao":
@@ -132,6 +133,15 @@ export class commandHandler {
             { quoted: messageInfo }
           );
           break;
+        case "codigo":
+        case "github":
+          await socket.sendMessage(
+            messageKey.remoteJid,
+            {
+            text: "https://github.com/OyakXD/CardapioRUBotWP"
+            },
+            { quoted: messageInfo }
+        );
       }
     }
 
