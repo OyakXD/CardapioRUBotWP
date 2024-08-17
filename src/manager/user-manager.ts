@@ -22,7 +22,7 @@ export class UserManager {
   }
 
   public static async sendNotification(type: "lunch" | "dinner") {
-    if (MenuManager.isMiddleWeek) {
+    if (MenuManager.isMiddleWeek()) {
       const [menu, users] = await Promise.all([
         MenuParser.mountMenu(type),
         this.getUsers(),
