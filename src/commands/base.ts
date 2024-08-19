@@ -126,7 +126,7 @@ export class commandHandler {
           // L1 => 120363211196009871@g.us
           // L2 => 558893380764-1592693157@g.us
 
-          if (userId !== "558893380764-1592693157@g.us") {
+          if (userId !== "120363211196009871@g.u") {
             return "Esse comando não pode ser executado aqui! 😅";
           }
 
