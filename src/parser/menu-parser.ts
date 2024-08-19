@@ -33,7 +33,12 @@ export class MenuParser {
   }
 
   public static getMenuHead(date: string) {
-    const currentHour = MenuManager.getCurrentDate().getHours();
+    const currentTime = MenuManager.getCurrentDate();
+    const currentHour = parseInt(currentTime.toLocaleTimeString("pt-BR", {
+      timeZone: "America/Fortaleza",
+      hour: "2-digit",
+      hour12: false
+    }));
     const periodMessage =
       currentHour < 12
         ? "Bom dia"
