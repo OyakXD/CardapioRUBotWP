@@ -1,13 +1,18 @@
 import { RequestMenu } from "../request/get-menu";
 import { ParserMenu } from "../types/types";
 import * as fs from "fs";
+import schedule from "node-schedule";
 
 export class MenuManager {
   public static async initialize() {
-    setTimeout(this.loadMenu, 1000 * 60 * 60 * 6);
 
-    this.loadMenu();
-  }
+    schedule.scheduleJob(
+      {hour: 7, minute: 0, tz: "America/Fortaleza"},
+      () => {
+        this.loadMenu();
+      }
+    )
+  } 
 
   public static async loadMenu() {
       const date = MenuManager.formatCurrentDate(MenuManager.getCurrentDate());
