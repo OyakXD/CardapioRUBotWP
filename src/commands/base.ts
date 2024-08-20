@@ -1,14 +1,10 @@
-import {
-  generateLinkPreviewIfRequired,
-  getUrlInfo,
-  proto,
-  WASocket,
-} from "baileys";
+import { proto, WASocket } from "baileys";
 import { MenuManager } from "../manager/menu-manager";
 import { UserManager } from "../manager/user-manager";
 import { MenuParser } from "../parser/menu-parser";
 import * as fs from "fs";
 import log from "log-beautify";
+import UsernameRegex from "github-username-regex-js";
 
 export const prefix = "!";
 
@@ -117,9 +113,10 @@ export class commandHandler {
             `*Comandos disponíveis:*`,
             ``,
             `- \`!cardapio\` Veja o cardápio do dia!`,
-            `- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
-            `- \`!stop\` Pare de receber o cardápio diariamente!`,
+            //`- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
+            //`- \`!stop\` Pare de receber o cardápio diariamente!`,
             `- \`!codigo ou !github\` Para ver o repositorio do bot!`,
+            `- \`!torrar <username>\` Descreva o perfil do github!`,
           ];
           return message.join("\n").trim();
         case "xandao":
@@ -177,6 +174,29 @@ export class commandHandler {
             },
             { quoted: messageInfo }
           );
+
+        case "torrar":
+          const username = args.join(" ");
+
+          if (UsernameRegex.test(username)) {
+            const response = await fetch(
+              `https://joaosvc-roast-api.vercel.app/search?username=${encodeURI(
+                username
+              )}`
+            );
+
+            if (response.status === 200) {
+              const data = await response.json();
+
+              if (data.roast) {
+                return data.roast;
+              }
+            }
+
+            return "Ops! Parece que nossa torrefadora está em pausa para o café. Tente novamente mais tarde! 😢";
+          } else {
+            return "Username inválido, por favor, insira um username válido. 😢";
+          }
       }
     }
 
