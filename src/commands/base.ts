@@ -190,7 +190,9 @@ export class commandHandler {
 
               if (data.roast) {
                 return data.roast;
-              }
+              } 
+            } else if (response.status === 500) {
+              return "Ops! Parece que nossa torrefadora atingiu o limite diario. Tente novamente amanhã! 😢";
             }
 
             return "Ops! Parece que nossa torrefadora está em pausa para o café. Tente novamente mais tarde! 😢";
