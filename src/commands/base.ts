@@ -5,6 +5,7 @@ import { MenuParser } from "../parser/menu-parser";
 import * as fs from "fs";
 import log from "log-beautify";
 import UsernameRegex from "github-username-regex-js";
+import GroupManager from "../manager/group/group-manager";
 
 export const prefix = "!";
 
@@ -24,10 +25,16 @@ export class commandHandler {
     if (body.startsWith(this.prefix)) {
       const args = body.slice(this.prefix.length).trim().split(" ");
       const command = args.shift()?.toLowerCase();
-      const userId = messageKey.remoteJid!;
-      const chatPrivate = UserManager.isChatPrivate(userId);
-      const userJid = chatPrivate ? userId : messageKey.participant!;
+      const remoteJid = messageKey.remoteJid!;
+      const chatPrivate = UserManager.isChatPrivate(remoteJid);
+      const userJid = chatPrivate ? remoteJid : messageKey.participant!;
       const userPhone = userJid.split("@")[0];
+      const participantID = messageKey.participant!;
+      const groupParticipants =
+        GroupManager.getGroupMetadata(remoteJid)?.participants;
+      const groupParticipant = groupParticipants?.filter(
+        (participant) => participant.id === participantID
+      )[0];
 
       log.info_(`[SOCKET (INFO)] => ${userPhone} => /${command}`);
 
@@ -42,29 +49,42 @@ export class commandHandler {
             return "Não há cardápio cadastrado para este dia. A publicação poderá ser feita posteriormente ou pode não haver expediente no restaurante universitário neste dia.";
           }
           return MenuParser.mountMenuMessage(lunch, dinner, date);
+        case "json":
+          return JSON.stringify(
+            {
+              remoteJid,
+              userJid,
+              userPhone,
+              userName: messageInfo.pushName,
+              command: {
+                name: command,
+                args,
+              },
+              messageTimestamp: messageInfo.messageTimestamp,
+              isGroup: !chatPrivate,
+              participantID,
+              ...(groupParticipant && { groupParticipant }),
+            },
+            null,
+            2
+          );
         case "toggle":
           if (chatPrivate) {
             return "Esse comando só pode ser executado em grupo! 😅";
           }
 
-          const participantID = messageKey.participant!;
-          const groupParticipant = (
-            await socket.groupMetadata(messageKey.remoteJid!)
-          ).participants.filter(
-            (participant) => participant.id === participantID
-          )[0]!;
           const isParticipantAdmin = !!groupParticipant.admin!;
 
           if (!isParticipantAdmin) {
             return "Apenas administradores podem executar esse comando! 😅";
           }
 
-          if (await UserManager.canReceiveNotification(userId)) {
-            await UserManager.removeReceiveNotification(userId);
+          if (await UserManager.canReceiveNotification(remoteJid)) {
+            await UserManager.removeReceiveNotification(remoteJid);
 
             return "Agora o cardápio diário não será mais enviado para esse grupo! 😢";
           } else {
-            await UserManager.addReceiveNotification(userId);
+            await UserManager.addReceiveNotification(remoteJid);
 
             return "Agora o cardápio diário será enviado para esse grupo! 🥳";
           }
@@ -77,8 +97,8 @@ export class commandHandler {
             return "Esse comando não está disponível no momento! 😢";
           }
 
-          if (!(await UserManager.canReceiveNotification(userId))) {
-            if (await UserManager.addReceiveNotification(userId)) {
+          if (!(await UserManager.canReceiveNotification(remoteJid))) {
+            if (await UserManager.addReceiveNotification(remoteJid)) {
               return "Agora você está recebendo o cardápio diário! 🥳";
             } else {
               return "Erro ao adicionar você na lista de notificações! 😢";
@@ -95,10 +115,10 @@ export class commandHandler {
             return "Esse comando não está disponível no momento! 😢";
           }
 
-          if (await UserManager.canReceiveNotification(userId)) {
-            await UserManager.removeReceiveNotification(userId);
+          if (await UserManager.canReceiveNotification(remoteJid)) {
+            await UserManager.removeReceiveNotification(remoteJid);
 
-            if (await UserManager.removeReceiveNotification(userId)) {
+            if (await UserManager.removeReceiveNotification(remoteJid)) {
               return "Agora você não está recebendo o cardápio diário! 😢";
             } else {
               return "Erro ao remover você da lista de notificações! 😢";
@@ -120,10 +140,7 @@ export class commandHandler {
           ];
           return message.join("\n").trim();
         case "xandao":
-          // L1 => 120363211196009871@g.us
-          // L2 => 558893380764-1592693157@g.us
-
-          if (userId !== "120363211196009871@g.u") {
+          if (remoteJid !== "120363211196009871@g.u") {
             return "Esse comando não pode ser executado aqui! 😅";
           }
 
@@ -174,7 +191,7 @@ export class commandHandler {
             },
             { quoted: messageInfo }
           );
-            break;
+          break;
         case "torrar":
           const username = args.join(" ");
 
@@ -190,7 +207,7 @@ export class commandHandler {
 
               if (data.roast) {
                 return data.roast;
-              } 
+              }
             } else if (response.status === 500) {
               return "Ops! Parece que nossa torrefadora atingiu o limite diario. Tente novamente amanhã! 😢";
             }

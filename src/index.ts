@@ -15,6 +15,7 @@ import { MenuManager } from "./manager/menu-manager";
 import { UserManager } from "./manager/user-manager";
 import { Boom } from "@hapi/boom";
 import Ack from "./utils/ack";
+import GroupManager from "./manager/group/group-manager";
 
 class WhatsappConnectorInstance {
   public socket: WASocket | undefined;
@@ -23,15 +24,19 @@ class WhatsappConnectorInstance {
   constructor() {
     this.commandHandler = new commandHandler(CommandPrefix);
 
+    this.handlerInitializer();
+  }
+
+  public async handlerInitializer() {
     try {
-      this.initialize();
+      await this.initialize();
     } catch (error) {
       log.error_(
         "[SOCKET (ERROR)] => Ocorreu um erro interno no baileys. Reiniciando em 2s..."
       );
 
-      setTimeout(() => this.initialize(), 2_000);
-    } 
+      setTimeout(() => this.handlerInitializer(), 2_000);
+    }
   }
 
   public static connect() {
@@ -125,7 +130,7 @@ class WhatsappConnectorInstance {
 
     store.bind(this.socket.ev);
 
-    this.socket.ev.on("connection.update", (update) => {
+    this.socket.ev.on("connection.update", async (update) => {
       const { connection, lastDisconnect } = update;
 
       if (connection === "close") {
@@ -143,11 +148,15 @@ class WhatsappConnectorInstance {
           WhatsappConnectorInstance.connect();
         }
       } else if (connection === "open") {
-        log.ok_(
-          `[SOCKET (INFO)] => Sessão aberta(${
-            this.socket.user.id.split(":")[0]
-          })`
-        );
+        log.ok_(`[SOCKET (INFO)] => Carregando informações dos grupos...`);
+
+        GroupManager.loadGroupsMetadata(this.socket!).then(() => {
+          log.ok_(
+            `[SOCKET (INFO)] => Sessão aberta(${
+              this.socket.user.id.split(":")[0]
+            })`
+          );
+        });
       }
     });
 
