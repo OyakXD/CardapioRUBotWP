@@ -140,7 +140,7 @@ export class commandHandler {
           ];
           return message.join("\n").trim();
         case "xandao":
-          if (remoteJid == "120363211196009871@g.u") {
+          if (remoteJid == "120363211196009871@g.us") {
             await socket.sendMessage(
               messageKey.remoteJid,
               {
@@ -149,6 +149,8 @@ export class commandHandler {
               },
               { quoted: messageInfo }
             );
+          } else {
+            return "Esse comando não pode ser executado aqui! 😅";
           }
 
           break;
