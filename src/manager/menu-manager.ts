@@ -7,7 +7,7 @@ export class MenuManager {
   public static async initialize() {
 
     schedule.scheduleJob(
-      {hour: 7, minute: 0, tz: "America/Fortaleza"},
+      {hour: 4, minute: 0, tz: "America/Fortaleza"},
       () => {
         this.loadMenu();
       }
