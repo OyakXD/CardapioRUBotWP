@@ -21,8 +21,17 @@ class WhatsappConnectorInstance {
   private commandHandler: commandHandler;
 
   constructor() {
-    this.initialize();
     this.commandHandler = new commandHandler(CommandPrefix);
+
+    try {
+      this.initialize();
+    } catch (error) {
+      log.error_(
+        "[SOCKET (ERROR)] => Ocorreu um erro interno no baileys. Reiniciando em 2s..."
+      );
+
+      setTimeout(() => this.initialize(), 2_000);
+    }
   }
 
   public static connect() {
