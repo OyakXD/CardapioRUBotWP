@@ -174,7 +174,7 @@ export class commandHandler {
             },
             { quoted: messageInfo }
           );
-
+            break;
         case "torrar":
           const username = args.join(" ");
 

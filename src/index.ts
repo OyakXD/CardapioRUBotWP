@@ -31,7 +31,7 @@ class WhatsappConnectorInstance {
       );
 
       setTimeout(() => this.initialize(), 2_000);
-    }
+    } 
   }
 
   public static connect() {
