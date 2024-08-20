@@ -217,6 +217,19 @@ export class commandHandler {
           } else {
             return "Username inválido, por favor, insira um username válido. 😢";
           }
+          case "jandao":
+            if (remoteJid == "120363211196009871@g.us") {
+              await socket.sendMessage(
+                messageKey.remoteJid,
+                {
+                  image: fs.readFileSync("images/jandao.jpg"),
+                  caption: "😲",
+                },
+                { quoted: messageInfo }
+              );
+            } else {
+              return "Esse comando não pode ser executado aqui! 😅";
+            }
       }
     }
 
