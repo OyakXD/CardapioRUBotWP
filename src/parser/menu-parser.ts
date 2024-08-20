@@ -64,7 +64,7 @@ export class MenuParser {
       Acompanhamento: ["🍚", "🍚", "🫘"],
       Salada: "🥗",
       Guarnição: "🍟",
-      Sobremesa: ["🍈", "🍬"],
+      Sobremesa: ["🍎", "🍬"],
       Suco: "🍹",
     };
 
