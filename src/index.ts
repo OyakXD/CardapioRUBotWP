@@ -44,6 +44,9 @@ class WhatsappConnectorInstance {
   }
 
   public async initialize() {
+    log.ok_(`[SOCKET (INFO)] => Iniciando bot...`);
+
+    log.ok_(`[SOCKET (INFO)] => Carregando credenciais...`);
     const [, , multiAuthState, waWebVersion] = await Promise.all([
       MenuManager.initialize(),
       UserManager.initialize(),
@@ -68,7 +71,7 @@ class WhatsappConnectorInstance {
     const { state: authState, saveCreds } = multiAuthState;
 
     const logger = Pino({
-      level: "info",
+      level: "silent",
       hooks: {
         logMethod: (args, method, level) => {
           const message = args[args.length - 1];
@@ -89,6 +92,8 @@ class WhatsappConnectorInstance {
         },
       },
     });
+
+    log.ok_(`[SOCKET (INFO)] => Iniciando cache...`);
 
     const store = makeInMemoryStore({ logger });
 
@@ -152,9 +157,9 @@ class WhatsappConnectorInstance {
 
         GroupManager.loadGroupsMetadata(this.socket!).then(() => {
           log.ok_(
-            `[SOCKET (INFO)] => Sessão aberta(${
+            `[SOCKET (INFO)] => Sessão aberta em ${
               this.socket.user.id.split(":")[0]
-            })`
+            }`
           );
         });
       }

@@ -140,18 +140,17 @@ export class commandHandler {
           ];
           return message.join("\n").trim();
         case "xandao":
-          if (remoteJid !== "120363211196009871@g.u") {
-            return "Esse comando não pode ser executado aqui! 😅";
+          if (remoteJid == "120363211196009871@g.u") {
+            await socket.sendMessage(
+              messageKey.remoteJid,
+              {
+                image: fs.readFileSync("images/xandao.jpg"),
+                caption: "Xandão é o cara! 😎",
+              },
+              { quoted: messageInfo }
+            );
           }
 
-          await socket.sendMessage(
-            messageKey.remoteJid,
-            {
-              image: fs.readFileSync("images/xandao.jpg"),
-              caption: "Xandão é o cara! 😎",
-            },
-            { quoted: messageInfo }
-          );
           break;
         case "codigo":
         case "github":
