@@ -13,9 +13,23 @@ export const prefix = "!";
 export class commandHandler {
   private prefix: string;
   private thumbnailOfGithub: Buffer;
+  private spamCommand: { [command: string]: number } = {};
 
   constructor(prefix: string) {
     this.prefix = prefix || "!";
+  }
+
+  public spam(command: string, delay: number = 3_000): boolean {
+    const currentTime = new Date().getMilliseconds();
+
+    if (this.spamCommand[command]) {
+      const lastTime = this.spamCommand[command];
+      const diff = currentTime - lastTime;
+
+      if (diff < 3000) {
+        return false;
+      }
+    }
   }
 
   public async handle(messageInfo: proto.IWebMessageInfo, socket: WASocket) {
@@ -26,6 +40,11 @@ export class commandHandler {
     if (body.startsWith(this.prefix)) {
       const args = body.slice(this.prefix.length).trim().split(" ");
       const command = args.shift()?.toLowerCase();
+
+      if (this.spam(command)) {
+        return "Você está executando muito este comando!, por favor, aguarde! 😅";
+      }
+
       const remoteJid = messageKey.remoteJid!;
       const chatPrivate = UserManager.isChatPrivate(remoteJid);
       const userJid = chatPrivate ? remoteJid : messageKey.participant!;
