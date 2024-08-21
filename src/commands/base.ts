@@ -181,6 +181,7 @@ export class commandHandler {
           //`- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
           //`- \`!stop\` Pare de receber o cardápio diariamente!`,
           `- \`!torrar <username>\` Descreva o perfil do github!`,
+          `- \`!codigo ou github\` Para ver o repositorio do bot!`,
           `- \`!sigaa\` Verifique se o SIGAA está online!`,
           `- \`!moodle\` Verifique se o MOODLE está online!`,
         ];
