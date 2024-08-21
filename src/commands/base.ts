@@ -9,6 +9,7 @@ import HttpConnection from "../request/http-connection";
 import * as fs from "fs";
 import Utils from "../utils/utils";
 import { YoutubeLinksResult, YoutubeSearchResult } from "../types/types";
+import { searchYoutubeDownload } from "../binary/youtube/youtube";
 
 export const prefix = "!";
 
@@ -307,11 +308,33 @@ export class commandHandler {
           const data: YoutubeLinksResult = await response.json();
 
           if (data.links) {
+            this.replyMessage(
+              remoteJid,
+              { text: "Gerando metadata, aguarde..." },
+              messageInfo,
+              socket
+            );
+
             const response = await Promise.all(
               data.links
                 .filter((link) => link.success)
-                .map((link) => {
-                  return link.searchResult;
+                .map(async (link) => {
+                  // --get-url -f best/bestvideo+bestaudio
+                  try {
+                    const searchResult = await searchYoutubeDownload(
+                      link.searchResult.youtubeUrl
+                    );
+
+                    return {
+                      ...link.searchResult,
+                      ...(searchResult && { searchResult }),
+                    };
+                  } catch (error) {
+                    return {
+                      ...link.searchResult,
+                      error: error,
+                    };
+                  }
                 })
             );
 
