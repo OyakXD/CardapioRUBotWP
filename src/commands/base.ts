@@ -268,8 +268,19 @@ export class commandHandler {
         } else {
           return "Username inválido, por favor, insira um username válido. 😢";
         }
-<<<<<<< HEAD
-      case "musicd":
+      case "sigaa":
+        if (await HttpConnection.sigaa()) {
+          return "SIGAA está online! ✅";
+        } else {
+          return "SIGAA está offline! 😓";
+        }
+      case "moodle":
+        if (await HttpConnection.moodle()) {
+          return "Moodle está online! ✅";
+        } else {
+          return "Moodle está offline! 😓";
+        }
+      case "music":
         const link = args.join(" ");
 
         if (!Utils.validateUrl(link)) {
@@ -314,20 +325,6 @@ export class commandHandler {
           messageInfo,
           socket
         );
-=======
-      case "sigaa":
-        if (await HttpConnection.sigaa()) {
-          return "SIGAA está online! ✅";
-        } else {
-          return "SIGAA está offline! 😓";
-        }
-      case "moodle":
-        if (await HttpConnection.moodle()) {
-          return "Moodle está online! ✅";
-        } else {
-          return "Moodle está offline! 😓";
-        }
->>>>>>> 489e665a1015e07f0c22cb824be8fd0dc4bbd5fd
 
       default:
         hasCommand = false;
