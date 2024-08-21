@@ -6,6 +6,8 @@ import log from "log-beautify";
 import UsernameRegex from "github-username-regex-js";
 import GroupManager from "../manager/group/group-manager";
 import * as fs from "fs";
+import Utils from "../utils/utils";
+import { YoutubeLinksResult, YoutubeSearchResult } from "../types/types";
 
 export const prefix = "!";
 
@@ -185,13 +187,14 @@ export class commandHandler {
         return message.join("\n").trim();
       case "xandao":
         if (remoteJid == "120363211196009871@g.us") {
-          await socket.sendMessage(
-            messageKey.remoteJid,
+          await this.replyMessage(
+            remoteJid,
             {
               image: fs.readFileSync("images/xandao.jpg"),
               caption: "Xandão é o cara! 😎",
             },
-            { quoted: messageInfo }
+            messageInfo,
+            socket
           );
         } else {
           return "Esse comando não pode ser executado aqui! 😅";
@@ -221,8 +224,8 @@ export class commandHandler {
           );
         }
 
-        await socket.sendMessage(
-          messageKey.remoteJid,
+        await this.replyMessage(
+          remoteJid,
           {
             text: "https://github.com/OyakXD/CardapioRUBotWP",
             linkPreview: {
@@ -234,7 +237,8 @@ export class commandHandler {
               jpegThumbnail: this.thumbnailOfGithub,
             },
           },
-          { quoted: messageInfo }
+          messageInfo,
+          socket
         );
         break;
       case "torrar":
@@ -261,6 +265,51 @@ export class commandHandler {
         } else {
           return "Username inválido, por favor, insira um username válido. 😢";
         }
+      case "musicd":
+        const link = args.join(" ");
+
+        if (!Utils.validateUrl(link)) {
+          return await this.replyMessage(
+            remoteJid,
+            { text: "Link inválido! 😢" },
+            messageInfo,
+            socket
+          );
+        }
+
+        this.replyMessage(
+          remoteJid,
+          { text: "Coletando informações do link aguarde..." },
+          messageInfo,
+          socket
+        );
+
+        const response = await fetch(
+          `https://song-search-api.vercel.app/full-simple-link?searchQuery=${link}`
+        );
+
+        if (response.ok && response.status === 200) {
+          const data: YoutubeLinksResult = await response.json();
+
+          if (data.links) {
+            const response = await Promise.all(
+              data.links
+                .filter((link) => link.success)
+                .map((link) => {
+                  return link.searchResult;
+                })
+            );
+
+            return JSON.stringify(response, null, 2);
+          }
+        }
+
+        return await this.replyMessage(
+          remoteJid,
+          { text: "Erro ao gerar o metadata do link! 😢" },
+          messageInfo,
+          socket
+        );
 
       default:
         hasCommand = false;
@@ -272,5 +321,16 @@ export class commandHandler {
     }
 
     return null;
+  }
+
+  private async replyMessage(
+    remoteJid: string,
+    message: any,
+    messageInfo: proto.IWebMessageInfo,
+    socket: WASocket
+  ) {
+    return await socket.sendMessage(remoteJid, message, {
+      quoted: messageInfo,
+    });
   }
 }

@@ -16,6 +16,7 @@ import { UserManager } from "./manager/user-manager";
 import { Boom } from "@hapi/boom";
 import Ack from "./utils/ack";
 import GroupManager from "./manager/group/group-manager";
+import YoutubeManager from "./manager/youtube-manager";
 
 class WhatsappConnectorInstance {
   public socket: WASocket | undefined;
@@ -45,6 +46,13 @@ class WhatsappConnectorInstance {
 
   public async initialize() {
     log.ok_(`[SOCKET (INFO)] => Iniciando bot...`);
+
+    /**
+     * Devido ao sistema de streaming de dados é
+     * necessário baixar o binário do youtube antes
+     * de iniciar o bot
+     */
+    await YoutubeManager.initializer();
 
     log.ok_(`[SOCKET (INFO)] => Carregando credenciais...`);
     const [, , multiAuthState, waWebVersion] = await Promise.all([
