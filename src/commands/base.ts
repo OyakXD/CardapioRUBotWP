@@ -138,7 +138,8 @@ export class commandHandler {
             //`- \`!stop\` Pare de receber o cardápio diariamente!`,
             `- \`!codigo ou !github\` Para ver o repositorio do bot!`,
             `- \`!torrar <username>\` Descreva o perfil do github!`,
-            `- \`!torrar <username>\` Descreva o perfil do github!`,
+            `- \`!sigaa\` Verifique se o SIGAA está online!`,
+            `- \`!moodle\` Verifique se o MOODLE está online!`,
           ];
           return message.join("\n").trim();
         case "xandao":
