@@ -2,5 +2,6 @@ node_modules/
 auth_session/
 models/
 build/
+bin/*
 package-lock.json
 baileys_store_multi.json
