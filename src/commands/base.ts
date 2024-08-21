@@ -6,6 +6,7 @@ import * as fs from "fs";
 import log from "log-beautify";
 import UsernameRegex from "github-username-regex-js";
 import GroupManager from "../manager/group/group-manager";
+import HttpConnection from "../request/http-connection";
 
 export const prefix = "!";
 
@@ -137,6 +138,7 @@ export class commandHandler {
             //`- \`!stop\` Pare de receber o cardápio diariamente!`,
             `- \`!codigo ou !github\` Para ver o repositorio do bot!`,
             `- \`!torrar <username>\` Descreva o perfil do github!`,
+            `- \`!torrar <username>\` Descreva o perfil do github!`,
           ];
           return message.join("\n").trim();
         case "xandao":
@@ -217,19 +219,32 @@ export class commandHandler {
           } else {
             return "Username inválido, por favor, insira um username válido. 😢";
           }
-          case "jandao":
-            if (remoteJid == "120363211196009871@g.us") {
-              await socket.sendMessage(
-                messageKey.remoteJid,
-                {
-                  image: fs.readFileSync("images/jandao.jpg"),
-                  caption: "😲",
-                },
-                { quoted: messageInfo }
-              );
-            } else {
-              return "Esse comando não pode ser executado aqui! 😅";
-            }
+        case "jandao":
+          if (remoteJid == "120363211196009871@g.us") {
+            await socket.sendMessage(
+              messageKey.remoteJid,
+              {
+                image: fs.readFileSync("images/jandao.jpg"),
+                caption: "😲",
+              },
+              { quoted: messageInfo }
+            );
+          } else {
+            return "Esse comando não pode ser executado aqui! 😅";
+          }
+          break;
+        case "sigaa":
+          if (await HttpConnection.sigaa()) {
+            return "SIGAA está online! ✅";
+          } else {
+            return "SIGAA está offline! 😓";
+          }
+        case "moodle":
+          if (await HttpConnection.moodle()) {
+            return "Moodle está online! ✅";
+          } else {
+            return "Moodle está offline! 😓";
+          }
       }
     }
 
