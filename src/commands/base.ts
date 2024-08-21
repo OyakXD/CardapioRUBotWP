@@ -5,6 +5,7 @@ import { MenuParser } from "../parser/menu-parser";
 import log from "log-beautify";
 import UsernameRegex from "github-username-regex-js";
 import GroupManager from "../manager/group/group-manager";
+import HttpConnection from "../request/http-connection";
 import * as fs from "fs";
 
 export const prefix = "!";
@@ -179,8 +180,9 @@ export class commandHandler {
           `- \`!cardapio\` Veja o cardápio do dia!`,
           //`- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
           //`- \`!stop\` Pare de receber o cardápio diariamente!`,
-          `- \`!codigo ou !github\` Para ver o repositorio do bot!`,
           `- \`!torrar <username>\` Descreva o perfil do github!`,
+          `- \`!sigaa\` Verifique se o SIGAA está online!`,
+          `- \`!moodle\` Verifique se o MOODLE está online!`,
         ];
         return message.join("\n").trim();
       case "xandao":
@@ -260,6 +262,18 @@ export class commandHandler {
           return "Ops! Parece que nossa torrefadora está em pausa para o café. Tente novamente mais tarde! 😢";
         } else {
           return "Username inválido, por favor, insira um username válido. 😢";
+        }
+      case "sigaa":
+        if (await HttpConnection.sigaa()) {
+          return "SIGAA está online! ✅";
+        } else {
+          return "SIGAA está offline! 😓";
+        }
+      case "moodle":
+        if (await HttpConnection.moodle()) {
+          return "Moodle está online! ✅";
+        } else {
+          return "Moodle está offline! 😓";
         }
 
       default:
