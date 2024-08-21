@@ -5,6 +5,7 @@ import { MenuParser } from "../parser/menu-parser";
 import log from "log-beautify";
 import UsernameRegex from "github-username-regex-js";
 import GroupManager from "../manager/group/group-manager";
+import HttpConnection from "../request/http-connection";
 import * as fs from "fs";
 import Utils from "../utils/utils";
 import { YoutubeLinksResult, YoutubeSearchResult } from "../types/types";
@@ -181,8 +182,10 @@ export class commandHandler {
           `- \`!cardapio\` Veja o cardápio do dia!`,
           //`- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
           //`- \`!stop\` Pare de receber o cardápio diariamente!`,
-          `- \`!codigo ou !github\` Para ver o repositorio do bot!`,
           `- \`!torrar <username>\` Descreva o perfil do github!`,
+          `- \`!codigo ou github\` Para ver o repositorio do bot!`,
+          `- \`!sigaa\` Verifique se o SIGAA está online!`,
+          `- \`!moodle\` Verifique se o MOODLE está online!`,
         ];
         return message.join("\n").trim();
       case "xandao":
@@ -265,6 +268,7 @@ export class commandHandler {
         } else {
           return "Username inválido, por favor, insira um username válido. 😢";
         }
+<<<<<<< HEAD
       case "musicd":
         const link = args.join(" ");
 
@@ -310,6 +314,20 @@ export class commandHandler {
           messageInfo,
           socket
         );
+=======
+      case "sigaa":
+        if (await HttpConnection.sigaa()) {
+          return "SIGAA está online! ✅";
+        } else {
+          return "SIGAA está offline! 😓";
+        }
+      case "moodle":
+        if (await HttpConnection.moodle()) {
+          return "Moodle está online! ✅";
+        } else {
+          return "Moodle está offline! 😓";
+        }
+>>>>>>> 489e665a1015e07f0c22cb824be8fd0dc4bbd5fd
 
       default:
         hasCommand = false;
