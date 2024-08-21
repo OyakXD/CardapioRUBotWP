@@ -52,10 +52,10 @@ class WhatsappConnectorInstance {
      * necessário baixar o binário do youtube antes
      * de iniciar o bot
      */
-    await YoutubeManager.initializer();
 
     log.ok_(`[SOCKET (INFO)] => Carregando credenciais...`);
-    const [, , multiAuthState, waWebVersion] = await Promise.all([
+    const [, , , multiAuthState, waWebVersion] = await Promise.all([
+      YoutubeManager.initializer(),
       MenuManager.initialize(),
       UserManager.initialize(),
       useMultiFileAuthState("auth_session"),
