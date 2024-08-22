@@ -276,9 +276,9 @@ export class commandHandler {
         }
       case "sipac":
         if (await HttpConnection.sipac()) {
-          return "Moodle está online! ✅\nhttps://moodle2.quixada.ufc.br";
+          return "SIPAC está online! ✅\nhttps://si3.ufc.br/sipac";
         } else {
-          return "Moodle está offline! 😓";
+          return "SIPAC está offline! 😓";
         }
       case "music":
         const link = args.join(" ");
