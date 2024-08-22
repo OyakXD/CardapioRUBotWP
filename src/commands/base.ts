@@ -255,13 +255,13 @@ export class commandHandler {
         }
       case "sigaa":
         if (await HttpConnection.sigaa()) {
-          return "SIGAA está online! ✅";
+          return "SIGAA está online! ✅\nhttps://si3.ufc.br/sigaa";
         } else {
           return "SIGAA está offline! 😓";
         }
       case "moodle":
         if (await HttpConnection.moodle()) {
-          return "Moodle está online! ✅";
+          return "Moodle está online! ✅\nhttps://moodle2.quixada.ufc.br";
         } else {
           return "Moodle está offline! 😓";
         }
