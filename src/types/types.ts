@@ -24,7 +24,3 @@ export interface YoutubeSearchResult {
     bestScore: string | null;
   };
 }
-
-export interface YoutubeLinksResult {
-  metadata: YoutubeSearchResult[];
-}

@@ -2,13 +2,14 @@ import { proto, WASocket } from "baileys";
 import { MenuManager } from "../manager/menu-manager";
 import { UserManager } from "../manager/user-manager";
 import { MenuParser } from "../parser/menu-parser";
-import { YoutubeLinksResult } from "../types/types";
+import { YoutubeSearchResult } from "../types/types";
 import UsernameRegex from "github-username-regex-js";
 import GroupManager from "../manager/group/group-manager";
 import HttpConnection from "../request/http-connection";
 import log from "log-beautify";
 import Utils from "../utils/utils";
 import * as fs from "fs";
+import DDown from "../request/ddown";
 
 export const prefix = "!";
 
@@ -85,10 +86,18 @@ export class commandHandler {
 
     let hasCommand = true;
 
-    const reply = async (message: any, quoted?: proto.IWebMessageInfo) => {
-      return await socket.sendMessage(remoteJid, message, {
-        quoted: quoted ? quoted : messageInfo,
-      });
+    const reply = async (
+      message: any,
+      quoted?: proto.IWebMessageInfo,
+      customJid?: string
+    ) => {
+      return await socket.sendMessage(
+        customJid ? customJid : remoteJid,
+        message,
+        {
+          quoted: quoted ? quoted : messageInfo,
+        }
+      );
     };
 
     switch (command) {
@@ -272,39 +281,134 @@ export class commandHandler {
           return "Link inválido! 😢";
         }
 
-        const [searchReply, searchResponse] = await Promise.all([
+        let replyKey: proto.IMessageKey;
+        let songsFound = 0;
+
+        const [searchReply, metadata]: [
+          proto.IWebMessageInfo,
+          YoutubeSearchResult[]
+        ] = await Promise.all([
           reply({
             text: "Coletando informações do link aguarde...",
           }),
-          fetch(
-            `https://song-search-api.vercel.app/full-simple-link?searchQuery=${link}`
-          ),
-        ]);
+          DDown.search(link, async (data) => {
+            if (data) {
+              songsFound += data.length;
+            }
 
-        if (!searchResponse.ok) {
+            if (replyKey) {
+              await reply({
+                text: `Músicas encontradas: ${songsFound}`,
+                edit: replyKey,
+              });
+            }
+          }),
+        ]);
+        replyKey = searchReply.key;
+
+        /* o end-point retorna nullo caso não tenha informações. */
+        if (!metadata) {
           return "Erro ao coletar informações do link! 😢";
         }
 
-        const [metadataReply, { metadata }]: [
-          proto.IWebMessageInfo,
-          YoutubeLinksResult
-        ] = await Promise.all([
-          reply({ text: "Gerando metadata, aguarde..." }, searchReply),
-          searchResponse.json(),
-        ]);
+        reply({
+          text: "Gerando dados da música, aguarde...",
+          edit: replyKey,
+        });
 
-        /** O end-point retorna nullo caso não tenha informações. */
-        if (metadata !== null) {
-          const response = await Promise.all(
-            metadata
-              .filter((link) => link.success)
-              .map(async (link) => {
-                return link;
-              })
-          );
+        /* Estrutura para gerenciar as mensagem de progresso */
+        const progressQueries: { [_: string]: string } = {};
 
-          return JSON.stringify(response, null, 2);
+        progressQueries["waiting"] = "Aguardando serviço de download...";
+
+        const progressTask = setInterval(
+          async () =>
+            await reply({
+              text: Object.values(progressQueries).join("\n\n"),
+              edit: replyKey,
+            }),
+          500
+        );
+
+        const response = (
+          await Promise.all(
+            metadata.map(async (searchResult) => {
+              const { song } = searchResult;
+
+              if (!searchResult.success) {
+                return null;
+              }
+
+              return {
+                ...(await DDown.get(song.url, (progress) => {
+                  /**
+                   * Remover o texto de espera do serviço de download
+                   * e adicionar o titulo do progresso da geração da música
+                   */
+
+                  if (progressQueries["waiting"]) {
+                    delete progressQueries["waiting"];
+
+                    progressQueries["progress-title"] = [
+                      `Progresso de geração das músicas:`,
+                      ``,
+                    ].join("\n");
+                  }
+
+                  if (!progressQueries[song.url] || !progress.success) {
+                    /**
+                     * Isso é necessario para enviar o status
+                     * do download da música em tempo real
+                     */
+                    progressQueries[song.url] = [
+                      `*Titulo*: \`${String(song.name).toLocaleUpperCase()}\``,
+                      `*Progresso*: \`${progress.progress / 10}%\``,
+                      `*Status*: \`${progress.text}\``,
+                    ]
+                      .join("\n")
+                      .trim();
+                  } else if (progressQueries[song.url] && progress.success) {
+                    delete progressQueries[song.url];
+                  }
+                })),
+                song,
+              };
+            })
+          )
+        ).filter(
+          (searchResult) => searchResult?.success && searchResult?.download_url
+        );
+
+        clearInterval(progressTask);
+
+        if (response.length > 0) {
+          const downloaded = response.length;
+          const total = metadata.length;
+
+          reply({
+            text: [
+              `Músicas Geradas ${downloaded}/${total}! 🥳`,
+              ``,
+              ...response.map((data) => {
+                const { download_url, success } = data;
+
+                return [
+                  `*Titulo*: \`${String(data.song.name).toLocaleUpperCase()}\``,
+                  `*Artistas*: \`${
+                    data.song.artists ? data.song.artists.join(", ") : "~"
+                  }\``,
+                  `*Melhor score*: ${data.song.bestScore || "N/A"}`,
+                  `*Link para download*: ${success ? download_url : "N/A"}`,
+                  ``,
+                ].join("\n");
+              }),
+            ]
+              .join("\n")
+              .trim(),
+            edit: replyKey,
+          });
         }
+        break;
 
       case "zurea":
         if (remoteJid !== "120363211196009871@g.us") {
