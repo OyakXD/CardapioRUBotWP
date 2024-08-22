@@ -264,13 +264,13 @@ export class commandHandler {
         }
       case "sigaa":
         if (await HttpConnection.sigaa()) {
-          return "SIGAA está online! ✅";
+          return "SIGAA está online! ✅\nhttps://si3.ufc.br/sigaa";
         } else {
           return "SIGAA está offline! 😓";
         }
       case "moodle":
         if (await HttpConnection.moodle()) {
-          return "Moodle está online! ✅";
+          return "Moodle está online! ✅\nhttps://moodle2.quixada.ufc.br";
         } else {
           return "Moodle está offline! 😓";
         }
@@ -411,10 +411,12 @@ export class commandHandler {
         break;
 
       case "zurea":
-        if (remoteJid !== "120363211196009871@g.us") {
+        if (remoteJid === "120363211196009871@g.us") {
           await reply({
             image: fs.readFileSync("images/mauricio.jpg"),
             caption: "😲",
+            width: 1220,
+            height: 608,
           });
         } else {
           return "Esse comando não pode ser executado aqui! 😅";
