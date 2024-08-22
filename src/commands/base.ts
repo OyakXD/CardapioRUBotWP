@@ -274,6 +274,12 @@ export class commandHandler {
         } else {
           return "Moodle está offline! 😓";
         }
+      case "sipac":
+        if (await HttpConnection.sipac()) {
+          return "Moodle está online! ✅\nhttps://moodle2.quixada.ufc.br";
+        } else {
+          return "Moodle está offline! 😓";
+        }
       case "music":
         const link = args.join(" ");
 

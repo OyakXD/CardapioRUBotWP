@@ -18,4 +18,8 @@ export default class HttpConnection {
   public static async moodle() {
     return await this.get("https://moodle2.quixada.ufc.br");
   }
+
+  public static async sipac() {
+    return await this.get("https://si3.ufc.br/sigaa");
+  }
 }
