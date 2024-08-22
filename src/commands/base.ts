@@ -2,14 +2,13 @@ import { proto, WASocket } from "baileys";
 import { MenuManager } from "../manager/menu-manager";
 import { UserManager } from "../manager/user-manager";
 import { MenuParser } from "../parser/menu-parser";
-import log from "log-beautify";
+import { YoutubeLinksResult } from "../types/types";
 import UsernameRegex from "github-username-regex-js";
 import GroupManager from "../manager/group/group-manager";
 import HttpConnection from "../request/http-connection";
-import * as fs from "fs";
+import log from "log-beautify";
 import Utils from "../utils/utils";
-import { YoutubeLinksResult, YoutubeSearchResult } from "../types/types";
-import { searchYoutubeDownload } from "../binary/youtube/youtube";
+import * as fs from "fs";
 
 export const prefix = "!";
 
@@ -85,6 +84,12 @@ export class commandHandler {
     )[0];
 
     let hasCommand = true;
+
+    const reply = async (message: any, quoted?: proto.IWebMessageInfo) => {
+      return await socket.sendMessage(remoteJid, message, {
+        quoted: quoted ? quoted : messageInfo,
+      });
+    };
 
     switch (command) {
       case "amor":
@@ -191,15 +196,10 @@ export class commandHandler {
         return message.join("\n").trim();
       case "xandao":
         if (remoteJid == "120363211196009871@g.us") {
-          await this.replyMessage(
-            remoteJid,
-            {
-              image: fs.readFileSync("images/xandao.jpg"),
-              caption: "Xandão é o cara! 😎",
-            },
-            messageInfo,
-            socket
-          );
+          await reply({
+            image: fs.readFileSync("images/xandao.jpg"),
+            caption: "Xandão é o cara! 😎",
+          });
         } else {
           return "Esse comando não pode ser executado aqui! 😅";
         }
@@ -207,17 +207,6 @@ export class commandHandler {
         break;
       case "codigo":
       case "github":
-        // const urlContent = await getUrlInfo(
-        //   "https://github.com/OyakXD/CardapioRUBotWP"
-        // );
-
-        // const linkPreview = {
-        //   ...urlContent,
-        //   jpegThumbnail: Buffer.from(
-        //     await (await fetch(urlContent.originalThumbnailUrl)).arrayBuffer()
-        //   ),
-        // };
-
         if (!this.thumbnailOfGithub) {
           this.thumbnailOfGithub = Buffer.from(
             await (
@@ -228,22 +217,17 @@ export class commandHandler {
           );
         }
 
-        await this.replyMessage(
-          remoteJid,
-          {
-            text: "https://github.com/OyakXD/CardapioRUBotWP",
-            linkPreview: {
-              "matched-text": "https://github.com/OyakXD/CardapioRUBotWP",
-              "canonical-url": "https://github.com/OyakXD/CardapioRUBotWP",
-              description:
-                "Contribute to OyakXD/CardapioRUBotWP development by creating an account on GitHub.",
-              title: "GitHub - OyakXD/CardapioRUBotWP",
-              jpegThumbnail: this.thumbnailOfGithub,
-            },
+        await reply({
+          text: "https://github.com/OyakXD/CardapioRUBotWP",
+          linkPreview: {
+            "matched-text": "https://github.com/OyakXD/CardapioRUBotWP",
+            "canonical-url": "https://github.com/OyakXD/CardapioRUBotWP",
+            description:
+              "Contribute to OyakXD/CardapioRUBotWP development by creating an account on GitHub.",
+            title: "GitHub - OyakXD/CardapioRUBotWP",
+            jpegThumbnail: this.thumbnailOfGithub,
           },
-          messageInfo,
-          socket
-        );
+        });
         break;
       case "torrar":
         const username = args.join(" ");
@@ -255,14 +239,14 @@ export class commandHandler {
             )}`
           );
 
-          if (response.status === 200) {
-            const data = await response.json();
+          if (response.ok) {
+            const { roast } = await response.json();
 
-            if (data.roast) {
-              return data.roast;
+            if (roast) {
+              return roast;
             }
           } else if (response.status === 500) {
-            return "Ops! Parece que nossa torrefadora atingiu o limite diario. Tente novamente amanhã! 😢";
+            return "Ops! Parece que nossa torrefadora atingiu o limite. 😢";
           }
 
           return "Ops! Parece que nossa torrefadora está em pausa para o café. Tente novamente mais tarde! 😢";
@@ -285,81 +269,49 @@ export class commandHandler {
         const link = args.join(" ");
 
         if (!Utils.validateUrl(link)) {
-          return await this.replyMessage(
-            remoteJid,
-            { text: "Link inválido! 😢" },
-            messageInfo,
-            socket
+          return "Link inválido! 😢";
+        }
+
+        const [searchReply, searchResponse] = await Promise.all([
+          reply({
+            text: "Coletando informações do link aguarde...",
+          }),
+          fetch(
+            `https://song-search-api.vercel.app/full-simple-link?searchQuery=${link}`
+          ),
+        ]);
+
+        if (!searchResponse.ok) {
+          return "Erro ao coletar informações do link! 😢";
+        }
+
+        const [metadataReply, { metadata }]: [
+          proto.IWebMessageInfo,
+          YoutubeLinksResult
+        ] = await Promise.all([
+          reply({ text: "Gerando metadata, aguarde..." }, searchReply),
+          searchResponse.json(),
+        ]);
+
+        /** O end-point retorna nullo caso não tenha informações. */
+        if (metadata !== null) {
+          const response = await Promise.all(
+            metadata
+              .filter((link) => link.success)
+              .map(async (link) => {
+                return link;
+              })
           );
+
+          return JSON.stringify(response, null, 2);
         }
-
-        this.replyMessage(
-          remoteJid,
-          { text: "Coletando informações do link aguarde..." },
-          messageInfo,
-          socket
-        );
-
-        const response = await fetch(
-          `https://song-search-api.vercel.app/full-simple-link?searchQuery=${link}`
-        );
-
-        if (response.ok && response.status === 200) {
-          const data: YoutubeLinksResult = await response.json();
-
-          if (data.links) {
-            this.replyMessage(
-              remoteJid,
-              { text: "Gerando metadata, aguarde..." },
-              messageInfo,
-              socket
-            );
-
-            const response = await Promise.all(
-              data.links
-                .filter((link) => link.success)
-                .map(async (link) => {
-                  // --get-url -f best/bestvideo+bestaudio
-                  try {
-                    const searchResult = await searchYoutubeDownload(
-                      link.searchResult.youtubeUrl
-                    );
-
-                    return {
-                      ...link.searchResult,
-                      ...(searchResult && { searchResult }),
-                    };
-                  } catch (error) {
-                    return {
-                      ...link.searchResult,
-                      error: error,
-                    };
-                  }
-                })
-            );
-
-            return JSON.stringify(response, null, 2);
-          }
-        }
-
-        return await this.replyMessage(
-          remoteJid,
-          { text: "Erro ao gerar o metadata do link! 😢" },
-          messageInfo,
-          socket
-        );
 
       case "zurea":
-        if (remoteJid == "120363211196009871@g.us") {
-          await this.replyMessage(
-            remoteJid,
-            {
-              image: fs.readFileSync("images/mauricio.jpg"),
-              caption: "😲",
-            },
-            messageInfo,
-            socket
-          );
+        if (remoteJid !== "120363211196009871@g.us") {
+          await reply({
+            image: fs.readFileSync("images/mauricio.jpg"),
+            caption: "😲",
+          });
         } else {
           return "Esse comando não pode ser executado aqui! 😅";
         }
@@ -374,16 +326,5 @@ export class commandHandler {
     }
 
     return null;
-  }
-
-  private async replyMessage(
-    remoteJid: string,
-    message: any,
-    messageInfo: proto.IWebMessageInfo,
-    socket: WASocket
-  ) {
-    return await socket.sendMessage(remoteJid, message, {
-      quoted: messageInfo,
-    });
   }
 }

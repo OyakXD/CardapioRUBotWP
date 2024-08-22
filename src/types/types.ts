@@ -15,18 +15,16 @@ export interface ParserMenu {
 export interface YoutubeSearchResult {
   success: boolean;
   message: string;
-  searchResult: {
-    youtubeUrl: string | null;
-    bestScore: number | null;
+  song: {
+    name: string;
+    url: string;
+    album: string;
+    artists: string[];
+    duration: number;
+    bestScore: string | null;
   };
 }
 
 export interface YoutubeLinksResult {
-  links: YoutubeSearchResult[];
-}
-
-export interface YoutubeDownloadResult {
-  watchId: string;
-  originalUrl: string;
-  downloadLink: string;
+  metadata: YoutubeSearchResult[];
 }
