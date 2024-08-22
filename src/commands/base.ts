@@ -349,6 +349,21 @@ export class commandHandler {
           socket
         );
 
+      case "zurea":
+        if (remoteJid == "120363211196009871@g.us") {
+          await this.replyMessage(
+            remoteJid,
+            {
+              image: fs.readFileSync("images/mauricio.jpg"),
+              caption: "😲",
+            },
+            messageInfo,
+            socket
+          );
+        } else {
+          return "Esse comando não pode ser executado aqui! 😅";
+        }
+
       default:
         hasCommand = false;
         break;
