@@ -307,7 +307,7 @@ export class commandHandler {
         }
 
       case "zurea":
-        if (remoteJid !== "120363211196009871@g.us") {
+        if (remoteJid === "120363211196009871@g.us") {
           await reply({
             image: fs.readFileSync("images/mauricio.jpg"),
             caption: "😲",
