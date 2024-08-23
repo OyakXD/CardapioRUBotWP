@@ -5,28 +5,29 @@ import schedule from "node-schedule";
 
 export class MenuManager {
   public static async initialize() {
-
     schedule.scheduleJob(
-      {hour: 4, minute: 0, tz: "America/Fortaleza"},
+      { hour: 4, minute: 0, tz: "America/Fortaleza" },
       () => {
         this.loadMenu();
       }
-    )
-  } 
+    );
+  }
 
   public static async loadMenu() {
-      const date = MenuManager.formatCurrentDate(MenuManager.getCurrentDate());
-      const isMiddleWeek = MenuManager.isMiddleWeek();
-      const [lunch, dinner] = isMiddleWeek ? await RequestMenu.get() : [null, null];
-   
-      if (!fs.existsSync(`./models`)) {
-        fs.mkdirSync(`./models`);
-      }
+    const date = MenuManager.formatCurrentDate(MenuManager.getCurrentDate());
+    const isMiddleWeek = MenuManager.isMiddleWeek();
+    const [lunch, dinner] = isMiddleWeek
+      ? await RequestMenu.get()
+      : [null, null];
 
-      fs.writeFileSync(
-        `./models/menu.json`,
-        JSON.stringify({ lunch, dinner, date }, null, 2)
-      );
+    if (!fs.existsSync(`./models`)) {
+      fs.mkdirSync(`./models`);
+    }
+
+    fs.writeFileSync(
+      `./models/menu.json`,
+      JSON.stringify({ lunch, dinner, date }, null, 2)
+    );
   }
 
   public static isMiddleWeek() {
@@ -52,6 +53,6 @@ export class MenuManager {
   }
 
   public static canReceiveNotificationInPrivateChat() {
-    return false;
+    return true;
   }
 }

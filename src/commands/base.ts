@@ -198,12 +198,13 @@ export class commandHandler {
       case "help":
       case "ajuda":
       case "info":
+      case "comandos":
         const message = [
           `*Comandos disponíveis:*`,
           ``,
           `- \`!cardapio\` Veja o cardápio do dia!`,
-          //`- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
-          //`- \`!stop\` Pare de receber o cardápio diariamente!`,
+          `- \`!start\` Receba o cardápio diariamente as 10:40 e 16:40!`,
+          `- \`!stop\` Pare de receber o cardápio diariamente!`,
           `- \`!torrar <username>\` Descreva o perfil do github!`,
           `- \`!codigo ou github\` Para ver o repositorio do bot!`,
           `- \`!sigaa\` Verifique se o SIGAA está online!`,
@@ -300,7 +301,9 @@ export class commandHandler {
         } else {
           return "Esse comando não pode ser executado aqui! 😅";
         }
+        break;
       case "music":
+      case "musica":
         if (!chatPrivate) {
           return "Esse comando só pode ser executado em uma conversa privada! 😅";
         }
