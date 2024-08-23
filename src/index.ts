@@ -114,15 +114,19 @@ class WhatsappConnectorInstance {
       logger: logger,
       markOnlineOnConnect: false,
       syncFullHistory: false,
-      shouldSyncHistoryMessage: () => true,
       generateHighQualityLinkPreview: true,
-      mobile: false,
+      shouldSyncHistoryMessage: (msg) => {
+        log.ok_(
+          `[SOCKET (INFO)] => Sincronizando mensagens..[${msg.progress}%]`
+        );
+        return !!msg.syncType;
+      },
       auth: {
         creds: authState.creds,
         /** caching makes the store faster to send/recv messages */
         keys: makeCacheableSignalKeyStore(authState.keys, logger),
       },
-      browser: ["Ubuntu", "Chrome", "20.0.04"],
+      browser: ["RU BOT - UFC", "Chrome", "20.0.04"],
       shouldIgnoreJid: (jid: string) => {
         return (
           jid && !jid.endsWith("@s.whatsapp.net") && !jid.endsWith("@g.us")
@@ -164,7 +168,7 @@ class WhatsappConnectorInstance {
 
       if (connection === "close") {
         const shouldReconnect =
-          (lastDisconnect.error as Boom)?.output?.statusCode !==
+          (lastDisconnect?.error as Boom)?.output?.statusCode !==
           DisconnectReason.loggedOut;
 
         log.warn_(

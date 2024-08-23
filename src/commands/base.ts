@@ -51,12 +51,7 @@ export class commandHandler {
       const args = body.slice(this.prefix.length).trim().split(" ");
       const command = args.shift()?.toLowerCase().trim();
 
-      const response = await this.finalHandle(
-        command,
-        args,
-        messageInfo,
-        socket
-      );
+      const response = await this.finalHandle(command, args, messageInfo);
 
       if (response && this.spam(command)) {
         return "Você está executando muito este comando! por favor, aguarde! 😅";
@@ -71,8 +66,7 @@ export class commandHandler {
   public async finalHandle(
     command: string,
     args: string[],
-    messageInfo: proto.IWebMessageInfo,
-    socket: WASocket
+    messageInfo: proto.IWebMessageInfo
   ) {
     const { key: messageKey } = messageInfo;
 
@@ -354,7 +348,7 @@ export class commandHandler {
         ]);
 
         /* o end-point retorna nullo caso não tenha informações. */
-        if (!searchReply.key || !metadata || metadata.length === 0) {
+        if (!searchReply?.key || !metadata || metadata.length === 0) {
           clearMusicTask();
           return "Erro ao coletar informações do link! 😢";
         }
