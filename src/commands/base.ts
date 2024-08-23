@@ -208,6 +208,8 @@ export class commandHandler {
           `- \`!codigo ou github\` Para ver o repositorio do bot!`,
           `- \`!sigaa\` Verifique se o SIGAA está online!`,
           `- \`!moodle\` Verifique se o MOODLE está online!`,
+          `- \`!sipac\` Verifique se o SIPAC está online!`,
+          `- \`!music <url>\` Baixe suas músicas favoritas!`,
         ];
         return message.join("\n").trim();
       case "xandao":

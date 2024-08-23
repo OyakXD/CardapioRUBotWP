@@ -19,6 +19,20 @@ export class UserManager {
         this.sendNotification("dinner");
       }
     );
+    schedule.scheduleJob(
+      {
+        hour: 20,
+        minute: 0,
+        tz: "America/Fortaleza",
+      },
+      () => {
+        let currentDay = MenuManager.getCurrentDate().getDay();
+
+        if (currentDay === 0 || currentDay === 3) {
+          this.rememberSchedule();
+        }
+      }
+    );
   }
 
   public static async sendNotification(type: "lunch" | "dinner") {
@@ -101,5 +115,9 @@ export class UserManager {
 
   public static isChatPrivate(userJid: string) {
     return userJid.includes("@s.whatsapp.net")!;
+  }
+
+  public static rememberSchedule() {
+    return "Lembre de agendar seu almoço e jantar! 😋";
   }
 }
