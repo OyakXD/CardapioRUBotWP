@@ -301,6 +301,10 @@ export class commandHandler {
           return "Esse comando não pode ser executado aqui! 😅";
         }
       case "music":
+        if (!chatPrivate) {
+          return "Esse comando só pode ser executado em uma conversa privada! 😅";
+        }
+
         const link = args.join(" ");
 
         if (!Utils.validateUrl(link)) {
