@@ -10,6 +10,7 @@ import log from "log-beautify";
 import Utils from "../utils/utils";
 import * as fs from "fs";
 import DDown from "../request/ddown";
+import { WhatsappConnector } from "..";
 
 export const prefix = "!";
 
@@ -94,7 +95,7 @@ export class commandHandler {
       customJid?: string
     ) => {
       try {
-        return await socket.sendMessage(
+        return await WhatsappConnector.sendMessage(
           customJid ? customJid : remoteJid,
           message,
           {

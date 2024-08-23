@@ -1,8 +1,10 @@
 import makeWASocket, {
+  AnyMessageContent,
   DisconnectReason,
   fetchLatestWaWebVersion,
   makeCacheableSignalKeyStore,
   makeInMemoryStore,
+  MiscMessageGenerationOptions,
   proto,
   useMultiFileAuthState,
   WAMessageContent,
@@ -214,23 +216,31 @@ class WhatsappConnectorInstance {
           const retryNode = await this.createRetryNode(message);
 
           if (retryNode) {
-            try {
-              await this.socket?.sendMessage(
-                message.key.remoteJid,
-                {
-                  text: response,
-                },
-                {
-                  quoted: message,
-                }
-              );
-            } catch (error) {
-              log.error_(`Error retrying message ${message.key.id}:`, error);
-            }
+            await this.sendMessage(
+              message.key.remoteJid,
+              {
+                text: response,
+              },
+              {
+                quoted: message,
+              }
+            );
           }
         }
       }
     });
+  }
+
+  public async sendMessage(
+    jid: string,
+    message: AnyMessageContent,
+    options?: MiscMessageGenerationOptions
+  ): Promise<proto.WebMessageInfo | undefined> {
+    try {
+      return await WhatsappConnector.socket?.sendMessage(jid, message, options);
+    } catch (error) {
+      log.error_(`Error sending message to jid ${jid}:`, error);
+    }
   }
 
   private async createRetryNode(message: proto.IWebMessageInfo) {

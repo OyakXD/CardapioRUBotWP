@@ -39,7 +39,7 @@ export class UserManager {
               this.isChatPrivate(user)) ||
             !this.isChatPrivate(user)
           ) {
-            await WhatsappConnector.socket.sendMessage(user, {
+            await WhatsappConnector.sendMessage(user, {
               text: menu,
             });
           }
