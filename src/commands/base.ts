@@ -352,13 +352,13 @@ export class commandHandler {
             }
           }),
         ]);
-        replyKey = searchReply.key;
 
         /* o end-point retorna nullo caso não tenha informações. */
-        if (!metadata || metadata.length === 0) {
+        if (!searchReply.key || !metadata || metadata.length === 0) {
           clearMusicTask();
           return "Erro ao coletar informações do link! 😢";
         }
+        replyKey = searchReply.key!;
 
         await reply({
           text: "Gerando dados da música, aguarde...",
