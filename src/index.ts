@@ -23,6 +23,7 @@ class WhatsappConnectorInstance {
   private store?: ReturnType<typeof makeInMemoryStore>;
   private failedMessages: Map<string, number> = new Map();
   private maxRetriesFailedMessage: number = 3;
+  private whatsappVersion: [number, number, number] = [2, 3000, 1015901307];
 
   constructor() {
     this.commandHandler = new commandHandler(CommandPrefix);
@@ -51,26 +52,35 @@ class WhatsappConnectorInstance {
     log.ok_(`[SOCKET (INFO)] => Iniciando bot...`);
 
     log.ok_(`[SOCKET (INFO)] => Carregando credenciais...`);
-    const [, , multiAuthState, waWebVersion] = await Promise.all([
+    const [, , multiAuthState] = await Promise.all([
       MenuManager.initialize(),
       UserManager.initialize(),
       useMultiFileAuthState("auth_session"),
-      fetchLatestWaWebVersion({}),
     ]);
 
     const { state: authState, saveCreds } = multiAuthState;
-    const { version, isLatest, error } = waWebVersion;
 
-    if (error) {
-      return log.error_(
-        "[SOCKET (ERROR)] => Erro ao buscar a versão mais recente do WhatsApp Web"
+    if (this.lastedWhatsappVersion()) {
+      log.ok_(
+        `[SOCKET (INFO)] => Buscando versão mais recente do WhatsApp Web...`
       );
-    }
 
-    if (!isLatest) {
-      log.warn_(
-        `[SOCKET (WARN)] => A versão do WhatsApp Web está desatualizada. Versão atual: ${version}`
-      );
+      const waWebVersion = await fetchLatestWaWebVersion({});
+      const { version, isLatest, error } = waWebVersion;
+
+      if (error) {
+        return log.error_(
+          "[SOCKET (ERROR)] => Erro ao buscar a versão mais recente do WhatsApp Web"
+        );
+      }
+
+      if (!isLatest) {
+        log.warn_(
+          `[SOCKET (WARN)] => A versão do WhatsApp Web está desatualizada. Versão atual: ${version}`
+        );
+      }
+
+      this.whatsappVersion = version;
     }
 
     const logger = Pino({
@@ -97,7 +107,7 @@ class WhatsappConnectorInstance {
     log.ok_(`[SOCKET (INFO)] => Criando socket...`);
 
     this.socket = makeWASocket({
-      version,
+      version: this.whatsappVersion,
       printQRInTerminal: true,
       logger: logger,
       markOnlineOnConnect: false,
@@ -251,6 +261,10 @@ class WhatsappConnectorInstance {
   }
 
   public enableStore() {
+    return false;
+  }
+
+  public lastedWhatsappVersion() {
     return false;
   }
 }
