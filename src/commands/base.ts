@@ -17,6 +17,8 @@ export class commandHandler {
   private prefix: string;
   private thumbnailOfGithub: Buffer;
   private spamCommand: Map<string, number> = new Map();
+  private musicRunningCount = 0;
+  private maxMusicRunningCount = 3;
 
   constructor(prefix: string) {
     this.prefix = prefix || "!";
@@ -56,7 +58,7 @@ export class commandHandler {
       );
 
       if (response && this.spam(command)) {
-        return "Você está executando muito este comando!, por favor, aguarde! 😅";
+        return "Você está executando muito este comando! por favor, aguarde! 😅";
       }
 
       return response;
@@ -84,20 +86,24 @@ export class commandHandler {
       (participant) => participant.id === participantID
     )[0];
 
-    let hasCommand = true;
+    log.info_(`[SOCKET (INFO)] => ${userPhone} => !${command}`);
 
     const reply = async (
       message: any,
       quoted?: proto.IWebMessageInfo,
       customJid?: string
     ) => {
-      return await socket.sendMessage(
-        customJid ? customJid : remoteJid,
-        message,
-        {
-          quoted: quoted ? quoted : messageInfo,
-        }
-      );
+      try {
+        return await socket.sendMessage(
+          customJid ? customJid : remoteJid,
+          message,
+          {
+            quoted: quoted ? quoted : messageInfo,
+          }
+        );
+      } catch (error) {
+        log.error_(`Error sending message:`, error);
+      }
     };
 
     switch (command) {
@@ -280,6 +286,17 @@ export class commandHandler {
         } else {
           return "SIPAC está offline! 😓";
         }
+      case "zurea":
+        if (remoteJid === "120363211196009871@g.us") {
+          await reply({
+            image: fs.readFileSync("images/mauricio.jpg"),
+            caption: "😲",
+            width: 1220,
+            height: 608,
+          });
+        } else {
+          return "Esse comando não pode ser executado aqui! 😅";
+        }
       case "music":
         const link = args.join(" ");
 
@@ -289,6 +306,21 @@ export class commandHandler {
 
         let replyKey: proto.IMessageKey;
         let songsFound = 0;
+
+        if (this.musicRunningCount >= this.maxMusicRunningCount) {
+          return "Limite de download de músicas ao mesmo tempo atingido, aguarde a fila esvaziar! 😢";
+        }
+        this.musicRunningCount++;
+
+        const musicTask = setTimeout(
+          () => this.musicRunningCount--,
+          60_000 * 3
+        );
+
+        const clearMusicTask = () => {
+          clearTimeout(musicTask);
+          this.musicRunningCount--;
+        };
 
         const [searchReply, metadata]: [
           proto.IWebMessageInfo,
@@ -313,68 +345,77 @@ export class commandHandler {
         replyKey = searchReply.key;
 
         /* o end-point retorna nullo caso não tenha informações. */
-        if (!metadata) {
+        if (!metadata || metadata.length === 0) {
+          clearMusicTask();
           return "Erro ao coletar informações do link! 😢";
         }
 
-        reply({
+        await reply({
           text: "Gerando dados da música, aguarde...",
           edit: replyKey,
         });
 
-        /* Estrutura para gerenciar as mensagem de progresso */
-        const progressQueries: { [_: string]: string } = {};
-
-        progressQueries["waiting"] = "Aguardando serviço de download...";
-
-        const progressTask = setInterval(
-          async () =>
-            await reply({
-              text: Object.values(progressQueries).join("\n\n"),
-              edit: replyKey,
-            }),
-          500
+        const songs = metadata.filter(
+          (data) => data && data.success && data.song
         );
+
+        /* Estrutura para gerenciar as mensagem de progresso */
+        const progressData = {
+          message: [] as string[],
+          queries: {} as { [_: string]: any },
+          count: 0,
+          downloaded: 0,
+          total: songs.length,
+        };
+
+        const progressTask = setInterval(() => {
+          const percentage = Math.floor(
+            (progressData.downloaded / progressData.total) * 100
+          );
+
+          if (progressData.count === 0) {
+            progressData.message = ["Aguardando serviço de download..."];
+          } else {
+            progressData.message = [
+              `Você pode ver o progresso de download das músicas abaixo:`,
+              ``,
+              `Progresso: ${progressData.downloaded}/${progressData.total} (${percentage}%)`,
+            ];
+          }
+
+          reply({
+            text: progressData.message.join("\n"),
+            edit: replyKey,
+          });
+        }, 1_000);
 
         const response = (
           await Promise.all(
-            metadata.map(async (searchResult) => {
-              const { song } = searchResult;
-
-              if (!searchResult.success) {
-                return null;
-              }
-
+            songs.map(async ({ song }) => {
               return {
                 ...(await DDown.get(song.url, (progress) => {
-                  /**
-                   * Remover o texto de espera do serviço de download
-                   * e adicionar o titulo do progresso da geração da música
-                   */
+                  const text = [
+                    `*Titulo*: \`${String(song.name).toLocaleUpperCase()}\``,
+                    `*Progresso*: \`${progress.progress / 10}%\``,
+                    `*Status*: \`${progress.text}\``,
+                  ]
+                    .join("\n")
+                    .trim();
 
-                  if (progressQueries["waiting"]) {
-                    delete progressQueries["waiting"];
-
-                    progressQueries["progress-title"] = [
-                      `Progresso de geração das músicas:`,
-                      ``,
-                    ].join("\n");
+                  if (!progressData.queries[song.url]) {
+                    progressData.count++;
                   }
 
-                  if (!progressQueries[song.url] || !progress.success) {
-                    /**
-                     * Isso é necessario para enviar o status
-                     * do download da música em tempo real
-                     */
-                    progressQueries[song.url] = [
-                      `*Titulo*: \`${String(song.name).toLocaleUpperCase()}\``,
-                      `*Progresso*: \`${progress.progress / 10}%\``,
-                      `*Status*: \`${progress.text}\``,
-                    ]
-                      .join("\n")
-                      .trim();
-                  } else if (progressQueries[song.url] && progress.success) {
-                    delete progressQueries[song.url];
+                  progressData.queries[song.url] = {
+                    progress: progress.progress / 10,
+                    text,
+                  };
+
+                  if (progress.success) {
+                    delete progressData.queries[song.url];
+
+                    progressData.downloaded++;
+                    progressData.count--;
                   }
                 })),
                 song,
@@ -389,22 +430,20 @@ export class commandHandler {
 
         if (response.length > 0) {
           const downloaded = response.length;
-          const total = metadata.length;
+          const total = songs.length;
 
-          reply({
+          await reply({
             text: [
               `Músicas Geradas ${downloaded}/${total}! 🥳`,
               ``,
               ...response.map((data) => {
-                const { download_url, success } = data;
-
                 return [
                   `*Titulo*: \`${String(data.song.name).toLocaleUpperCase()}\``,
                   `*Artistas*: \`${
                     data.song.artists ? data.song.artists.join(", ") : "~"
                   }\``,
                   `*Melhor score*: ${data.song.bestScore || "N/A"}`,
-                  `*Link para download*: ${success ? download_url : "N/A"}`,
+                  `*Link para download*: ${data.download_url}`,
                   ``,
                 ].join("\n");
               }),
@@ -413,28 +452,15 @@ export class commandHandler {
               .trim(),
             edit: replyKey,
           });
-        }
-        break;
-
-      case "zurea":
-        if (remoteJid === "120363211196009871@g.us") {
-          await reply({
-            image: fs.readFileSync("images/mauricio.jpg"),
-            caption: "😲",
-            width: 1220,
-            height: 608,
-          });
         } else {
-          return "Esse comando não pode ser executado aqui! 😅";
+          await reply({
+            text: "Erro ao gerar as músicas! 😢",
+            edit: replyKey,
+          });
         }
 
-      default:
-        hasCommand = false;
+        clearMusicTask();
         break;
-    }
-
-    if (hasCommand) {
-      log.info_(`[SOCKET (INFO)] => ${userPhone} => !${command}`);
     }
 
     return null;

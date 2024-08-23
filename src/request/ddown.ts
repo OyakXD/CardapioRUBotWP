@@ -3,7 +3,7 @@ import { YoutubeSearchResult } from "../types/types";
 
 const DOWNLOAD_URL = "https://ab.cococococ.com/ajax/download.php";
 const PROGRESS_URL = "https://p.oceansaver.in/ajax/progress.php";
-const SEARCH_URL = "https://song-search-api.vercel.app/full-search-songs";
+const SONG_SEARCH_URL = "https://song-search-api.vercel.app";
 
 interface CallbackProgress {
   progress: number;
@@ -20,15 +20,18 @@ export default class DDown {
     searchLimit?: number
   ) {
     try {
-      const response = await axios.post(
-        SEARCH_URL,
-        { searchQuery, searchLimit, offset },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const axiosInstance = axios.create({
+        baseURL: SONG_SEARCH_URL,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const response = await axiosInstance.post("/search-songs", {
+        searchQuery,
+        searchLimit,
+        offset,
+      });
 
       if (!response.data) {
         return null;
@@ -40,9 +43,23 @@ export default class DDown {
       const metadataResults = [];
 
       if (type === "songs") {
-        metadataResults.push(...metadata);
+        const simpleMetadata = await Promise.all(
+          metadata.map(async (song: any) => {
+            try {
+              const response = await axiosInstance.post("/simple-link", song);
 
-        if (callback) callback(metadata);
+              if (response.data) {
+                return response.data;
+              }
+            } catch (error) {
+              return null;
+            }
+          })
+        );
+
+        metadataResults.push(...simpleMetadata);
+
+        if (callback) callback(simpleMetadata);
 
         if (hasMore) {
           const moreResults = await this.search(
