@@ -25,7 +25,7 @@ class WhatsappConnectorInstance {
   private store?: ReturnType<typeof makeInMemoryStore>;
   private failedMessages: Map<string, number> = new Map();
   private maxRetriesFailedMessage: number = 3;
-  private whatsappVersion: [number, number, number] = [2, 3000, 1015901307];
+  private whatsappVersion: [number, number, number] = [2, 3000, 1015920675];
 
   constructor() {
     this.commandHandler = new commandHandler(CommandPrefix);
