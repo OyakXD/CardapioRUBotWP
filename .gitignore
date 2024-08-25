@@ -3,5 +3,6 @@ auth_session/
 models/
 build/
 bin/*
+yarn.lock
 package-lock.json
 baileys_store_multi.json
