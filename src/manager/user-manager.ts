@@ -1,29 +1,20 @@
 import * as fs from "fs";
 import log from "log-beautify";
 import { MenuManager } from "./menu-manager";
-import schedule from "node-schedule";
+import { scheduleJob } from "node-schedule";
 import { MenuParser } from "../parser/menu-parser";
 import { WhatsappConnector } from "..";
 
 export class UserManager {
   public static async initialize() {
-    schedule.scheduleJob(
-      { hour: 10, minute: 40, tz: "America/Fortaleza" },
-      () => {
-        this.sendNotification("lunch");
-      }
+    scheduleJob({ hour: 10, minute: 40, tz: "America/Fortaleza" }, () =>
+      this.sendNotification("lunch")
     );
-    schedule.scheduleJob(
-      { hour: 16, minute: 30, tz: "America/Fortaleza" },
-      () => {
-        this.sendNotification("dinner");
-      }
+    scheduleJob({ hour: 16, minute: 30, tz: "America/Fortaleza" }, () =>
+      this.sendNotification("dinner")
     );
-    schedule.scheduleJob(
-      { hour: 20, minute: 0, tz: "America/Fortaleza" },
-      () => {
-        this.rememberSchedule();
-      }
+    scheduleJob({ hour: 20, minute: 0, tz: "America/Fortaleza" }, () =>
+      this.rememberSchedule()
     );
   }
 
@@ -38,7 +29,7 @@ export class UserManager {
         return;
       }
 
-      for (const user of users as string[]) {
+      for (const user of users) {
         if (await this.canReceiveNotification(user)) {
           if (
             (MenuManager.canReceiveNotificationInPrivateChat() &&
@@ -82,7 +73,7 @@ export class UserManager {
     }
   }
 
-  public static async getUsers() {
+  public static async getUsers(): Promise<string[]> {
     try {
       if (fs.existsSync("models/users.json")) {
         return JSON.parse(
@@ -115,7 +106,7 @@ export class UserManager {
     if (currentDay === 0 || currentDay === 3) {
       const users = await this.getUsers();
 
-      for (const user of users as string[]) {
+      for (const user of users) {
         if (this.canReceiveNotification(user)) {
           if (
             (MenuManager.canReceiveNotificationInPrivateChat() &&
@@ -123,9 +114,11 @@ export class UserManager {
             !this.isChatPrivate(user)
           ) {
             WhatsappConnector.sendMessage(user, {
-              image: fs.readFileSync("images/agendamento.jpg"),
               caption:
                 "Lembre de agendar seu almoço e jantar! 😋\nhttps://si3.ufc.br/sigaa",
+              image: fs.readFileSync("images/agendamento.jpg"),
+              width: 1080,
+              height: 1080,
             });
           }
         }

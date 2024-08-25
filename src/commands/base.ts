@@ -212,6 +212,8 @@ export class commandHandler {
           await reply({
             image: fs.readFileSync("images/xandao.jpg"),
             caption: "Xandão é o cara! 😎",
+            width: 256,
+            height: 356,
           });
         } else {
           return "Esse comando não pode ser executado aqui! 😅";

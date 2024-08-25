@@ -5,11 +5,11 @@ import schedule from "node-schedule";
 
 export class MenuManager {
   public static async initialize() {
-    schedule.scheduleJob(
-      { hour: 4, minute: 0, tz: "America/Fortaleza" },
-      () => {
-        this.loadMenu();
-      }
+    if (!fs.existsSync(`./models`)) {
+      fs.mkdirSync(`./models`);
+    }
+    schedule.scheduleJob({ hour: 4, minute: 0, tz: "America/Fortaleza" }, () =>
+      this.loadMenu()
     );
   }
 
@@ -19,10 +19,6 @@ export class MenuManager {
     const [lunch, dinner] = isMiddleWeek
       ? await RequestMenu.get()
       : [null, null];
-
-    if (!fs.existsSync(`./models`)) {
-      fs.mkdirSync(`./models`);
-    }
 
     fs.writeFileSync(
       `./models/menu.json`,
