@@ -122,9 +122,10 @@ export class UserManager {
               width: 1080,
               height: 1080,
               ...(isGroup && {
-                mentions: GroupManager.getGroupMetadata(user)?.participants.map(
-                  (member) => member.id
-                ),
+                mentions:
+                  GroupManager.getGroupMetadata(user)?.participants.map(
+                    (member) => member.id
+                  ) ?? [],
               }),
             });
           }
