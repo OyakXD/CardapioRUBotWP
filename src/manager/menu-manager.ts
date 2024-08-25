@@ -37,7 +37,15 @@ export class MenuManager {
   }
 
   public static async getMenu(): Promise<ParserMenu> {
-    return JSON.parse(fs.readFileSync(`./models/menu.json`, "utf-8"));
+    try {
+      return JSON.parse(fs.readFileSync(`./models/menu.json`, "utf-8"));
+    } catch (error) {
+      return {
+        lunch: null,
+        dinner: null,
+        date: "00/00/0000",
+      };
+    }
   }
 
   public static getCurrentDate() {

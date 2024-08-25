@@ -20,17 +20,9 @@ export class UserManager {
       }
     );
     schedule.scheduleJob(
-      {
-        hour: 20,
-        minute: 0,
-        tz: "America/Fortaleza",
-      },
+      { hour: 20, minute: 0, tz: "America/Fortaleza" },
       () => {
-        let currentDay = MenuManager.getCurrentDate().getDay();
-
-        if (currentDay === 0 || currentDay === 3) {
-          this.rememberSchedule();
-        }
+        this.rememberSchedule();
       }
     );
   }
@@ -100,7 +92,7 @@ export class UserManager {
         return [];
       }
     } catch (error) {
-      log.error("Erro ao carregar os usuarios", error);
+      log.error_("Erro ao carregar os usuarios", error);
       return [];
     }
   }
@@ -118,6 +110,10 @@ export class UserManager {
   }
 
   public static rememberSchedule() {
-    return "Lembre de agendar seu almoço e jantar! 😋";
+    let currentDay = MenuManager.getCurrentDate().getDay();
+
+    if (currentDay === 0 || currentDay === 3) {
+      return "Lembre de agendar seu almoço e jantar! 😋";
+    }
   }
 }
