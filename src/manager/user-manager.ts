@@ -4,6 +4,7 @@ import { MenuManager } from "./menu-manager";
 import { scheduleJob } from "node-schedule";
 import { MenuParser } from "../parser/menu-parser";
 import { WhatsappConnector } from "..";
+import GroupManager from "./group/group-manager";
 
 export class UserManager {
   public static async initialize() {
@@ -108,10 +109,11 @@ export class UserManager {
 
       for (const user of users) {
         if (this.canReceiveNotification(user)) {
+          const isGroup = !this.isChatPrivate(user);
+
           if (
-            (MenuManager.canReceiveNotificationInPrivateChat() &&
-              this.isChatPrivate(user)) ||
-            !this.isChatPrivate(user)
+            (MenuManager.canReceiveNotificationInPrivateChat() && !isGroup) ||
+            isGroup
           ) {
             WhatsappConnector.sendMessage(user, {
               caption:
@@ -119,6 +121,11 @@ export class UserManager {
               image: fs.readFileSync("images/agendamento.jpg"),
               width: 1080,
               height: 1080,
+              ...(isGroup && {
+                mentions: GroupManager.getGroupMetadata(user)?.participants.map(
+                  (member) => member.id
+                ),
+              }),
             });
           }
         }
