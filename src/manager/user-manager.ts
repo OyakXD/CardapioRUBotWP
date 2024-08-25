@@ -109,11 +109,27 @@ export class UserManager {
     return userJid.includes("@s.whatsapp.net")!;
   }
 
-  public static rememberSchedule() {
+  public static async rememberSchedule() {
     let currentDay = MenuManager.getCurrentDate().getDay();
 
     if (currentDay === 0 || currentDay === 3) {
-      return "Lembre de agendar seu almoço e jantar! 😋";
+      const users = await this.getUsers();
+
+      for (const user of users as string[]) {
+        if (this.canReceiveNotification(user)) {
+          if (
+            (MenuManager.canReceiveNotificationInPrivateChat() &&
+              this.isChatPrivate(user)) ||
+            !this.isChatPrivate(user)
+          ) {
+            WhatsappConnector.sendMessage(user, {
+              image: fs.readFileSync("images/agendamento.jpg"),
+              caption:
+                "Lembre de agendar seu almoço e jantar! 😋\nhttps://si3.ufc.br/sigaa",
+            });
+          }
+        }
+      }
     }
   }
 }
