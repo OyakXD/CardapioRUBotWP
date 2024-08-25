@@ -194,8 +194,6 @@ class WhatsappConnectorInstance {
     });
 
     this.socket.ev.on("creds.update", () => {
-      /* Remove previous listeners */
-      this.socket.ev.removeAllListeners("creds.update");
       saveCreds();
     });
 
