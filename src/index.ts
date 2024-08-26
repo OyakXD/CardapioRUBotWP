@@ -233,6 +233,23 @@ class WhatsappConnectorInstance {
         }
       }
     });
+
+    this.socket.ev.on("call", async (calls) => {
+      for (const call of calls) {
+        try {
+          if (call.isGroup || call.status !== "offer") {
+            continue;
+          }
+
+          await this.socket.rejectCall(call.id, call.chatId);
+          await this.sendMessage(call.chatId, {
+            text: "📞 Chamada rejeitada, não me ligue!",
+          });
+        } catch (error) {
+          log.error_(`Error ao cancelar chamada de ${call.chatId}:`);
+        }
+      }
+    });
   }
 
   public async sendMessage(
