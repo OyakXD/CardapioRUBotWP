@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@hapi/boom": "^10.0.1",
+    "@prisma/client": "^5.18.0",
     "axios": "^1.7.3",
     "baileys": "github:WhiskeySockets/Baileys",
     "cheerio": "1.0.0-rc.12",

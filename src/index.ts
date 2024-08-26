@@ -16,6 +16,7 @@ import { commandHandler, prefix as CommandPrefix } from "./commands/base";
 import { MenuManager } from "./manager/menu-manager";
 import { UserManager } from "./manager/user-manager";
 import { Boom } from "@hapi/boom";
+import { PrismaClient } from "@prisma/client";
 import GroupManager from "./manager/group/group-manager";
 import Ack from "./utils/ack";
 
@@ -26,6 +27,7 @@ class WhatsappConnectorInstance {
   private failedMessages: Map<string, number> = new Map();
   private maxRetriesFailedMessage: number = 3;
   private whatsappVersion: [number, number, number] = [2, 3000, 1015920675];
+  private prisma: PrismaClient;
 
   constructor() {
     this.commandHandler = new commandHandler(CommandPrefix);
@@ -105,6 +107,8 @@ class WhatsappConnectorInstance {
         },
       },
     });
+
+    this.prisma = new PrismaClient();
 
     log.ok_(`[SOCKET (INFO)] => Criando socket...`);
 
@@ -264,6 +268,10 @@ class WhatsappConnectorInstance {
       messageTimestamp: message.messageTimestamp,
       status: message.status,
     };
+  }
+
+  public getPrisma() {
+    return this.prisma;
   }
 
   public readMessageOnReceive() {

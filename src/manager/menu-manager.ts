@@ -1,22 +1,22 @@
 import { RequestMenu } from "../request/get-menu";
 import { ParserMenu } from "../types/types";
+import { scheduleJob } from "node-schedule";
 import * as fs from "fs";
-import schedule from "node-schedule";
 
 export class MenuManager {
   public static async initialize() {
     if (!fs.existsSync(`./models`)) {
       fs.mkdirSync(`./models`);
     }
-    schedule.scheduleJob({ hour: 4, minute: 0, tz: "America/Fortaleza" }, () =>
-      this.loadMenu()
+
+    scheduleJob({ hour: 4, minute: 0, tz: "America/Fortaleza" }, () =>
+      this.createMenu()
     );
   }
 
-  public static async loadMenu() {
+  public static async createMenu() {
     const date = MenuManager.formatCurrentDate(MenuManager.getCurrentDate());
-    const isMiddleWeek = MenuManager.isMiddleWeek();
-    const [lunch, dinner] = isMiddleWeek
+    const [lunch, dinner] = MenuManager.isMiddleWeek()
       ? await RequestMenu.get()
       : [null, null];
 
@@ -54,9 +54,5 @@ export class MenuManager {
     const year = date.getFullYear();
 
     return `${day}/${month}/${year}`;
-  }
-
-  public static canReceiveNotificationInPrivateChat() {
-    return true;
   }
 }

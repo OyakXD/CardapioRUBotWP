@@ -1,10 +1,11 @@
 import * as fs from "fs";
 import log from "log-beautify";
+import GroupManager from "./group/group-manager";
 import { MenuManager } from "./menu-manager";
 import { scheduleJob } from "node-schedule";
 import { MenuParser } from "../parser/menu-parser";
 import { WhatsappConnector } from "..";
-import GroupManager from "./group/group-manager";
+import { User } from "@prisma/client";
 
 export class UserManager {
   public static async initialize() {
@@ -33,11 +34,11 @@ export class UserManager {
       for (const user of users) {
         if (await this.canReceiveNotification(user)) {
           if (
-            (MenuManager.canReceiveNotificationInPrivateChat() &&
-              this.isChatPrivate(user)) ||
-            !this.isChatPrivate(user)
+            (this.canReceiveNotificationInPrivateChat() &&
+              this.isChatPrivate(user.jid)) ||
+            !this.isChatPrivate(user.jid)
           ) {
-            await WhatsappConnector.sendMessage(user, {
+            await WhatsappConnector.sendMessage(user.jid, {
               text: menu,
             });
           }
@@ -46,59 +47,81 @@ export class UserManager {
     }
   }
 
-  public static async canReceiveNotification(userId: string) {
+  public static async canReceiveNotification(
+    userJid: string | User
+  ): Promise<boolean> {
     try {
-      return (await this.getUsers()).includes(userId);
+      return (await this.getUser(userJid))?.notification ?? false;
     } catch (error) {
       return false;
     }
   }
 
-  public static async removeReceiveNotification(userId: string) {
+  public static async removeReceiveNotification(userJid: string | User) {
+    return await this.updateUserNotification(userJid, false);
+  }
+
+  public static async addReceiveNotification(userJid: string | User) {
+    return await this.updateUserNotification(userJid, true);
+  }
+
+  public static async updateUserNotification(
+    userJid: string | User,
+    value: boolean
+  ) {
     try {
-      await this.saveUsers(
-        (await this.getUsers()).filter((user: string) => user !== userId)
-      );
+      userJid = typeof userJid !== "string" ? userJid.jid : userJid;
+
+      await WhatsappConnector.getPrisma().user.upsert({
+        where: {
+          jid: userJid,
+        },
+        update: {
+          notification: value,
+        },
+        create: {
+          jid: userJid,
+          notification: value,
+        },
+      });
       return true;
     } catch (error) {
       return false;
     }
   }
 
-  public static async addReceiveNotification(userId: string) {
+  public static async getUsers(): Promise<User[]> {
     try {
-      await this.saveUsers([...(await this.getUsers()), userId]);
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  public static async getUsers(): Promise<string[]> {
-    try {
-      if (fs.existsSync("models/users.json")) {
-        return JSON.parse(
-          await fs.promises.readFile("models/users.json", "utf-8")
-        );
-      } else {
-        return [];
-      }
+      return await WhatsappConnector.getPrisma().user.findMany();
     } catch (error) {
       log.error_("Erro ao carregar os usuarios", error);
       return [];
     }
   }
 
-  public static async saveUsers(users: string[]) {
-    await fs.promises.writeFile(
-      "models/users.json",
-      JSON.stringify(users, null, 2),
-      "utf-8"
-    );
+  public static async getUser(userJid: string | User): Promise<User | null> {
+    try {
+      if (typeof userJid !== "string") {
+        return userJid;
+      }
+
+      return await WhatsappConnector.getPrisma().user.findUnique({
+        where: {
+          jid: userJid,
+        },
+      });
+    } catch (error) {
+      log.error_("Erro ao carregar o usuario", error);
+      return null;
+    }
   }
 
   public static isChatPrivate(userJid: string) {
     return userJid.includes("@s.whatsapp.net")!;
+  }
+
+  public static canReceiveNotificationInPrivateChat() {
+    return true;
   }
 
   public static async rememberSchedule() {
@@ -108,27 +131,29 @@ export class UserManager {
       const users = await this.getUsers();
 
       for (const user of users) {
-        if (this.canReceiveNotification(user)) {
-          const isGroup = !this.isChatPrivate(user);
+        if (!(await this.canReceiveNotification(user))) {
+          continue;
+        }
 
-          if (
-            (MenuManager.canReceiveNotificationInPrivateChat() && !isGroup) ||
-            isGroup
-          ) {
-            WhatsappConnector.sendMessage(user, {
-              caption:
-                "Lembre de agendar seu almoço e jantar! 😋\nhttps://si3.ufc.br/sigaa",
-              image: fs.readFileSync("images/agendamento.jpg"),
-              width: 1080,
-              height: 1080,
-              ...(isGroup && {
-                mentions:
-                  GroupManager.getGroupMetadata(user)?.participants.map(
-                    (member) => member.id
-                  ) ?? [],
-              }),
-            });
-          }
+        const isGroup = !this.isChatPrivate(user.jid);
+
+        if (
+          (this.canReceiveNotificationInPrivateChat() && !isGroup) ||
+          isGroup
+        ) {
+          WhatsappConnector.sendMessage(user.jid, {
+            caption:
+              "Lembre de agendar seu almoço e jantar! 😋\nhttps://si3.ufc.br/sigaa",
+            image: fs.readFileSync("images/agendamento.jpg"),
+            width: 1080,
+            height: 1080,
+            ...(isGroup && {
+              mentions:
+                GroupManager.getGroupMetadata(user.jid)?.participants.map(
+                  (member) => member.id
+                ) ?? [],
+            }),
+          });
         }
       }
     }

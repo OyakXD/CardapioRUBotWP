@@ -3,14 +3,14 @@ import { MenuManager } from "../manager/menu-manager";
 import { UserManager } from "../manager/user-manager";
 import { MenuParser } from "../parser/menu-parser";
 import { YoutubeSearchResult } from "../types/types";
+import { WhatsappConnector } from "..";
 import UsernameRegex from "github-username-regex-js";
 import GroupManager from "../manager/group/group-manager";
 import HttpConnection from "../request/http-connection";
 import log from "log-beautify";
 import Utils from "../utils/utils";
-import * as fs from "fs";
 import DDown from "../request/ddown";
-import { WhatsappConnector } from "..";
+import * as fs from "fs";
 
 export const prefix = "!";
 
@@ -156,7 +156,7 @@ export class commandHandler {
           return "Esse comando só pode ser executado em uma conversa privada! 😅";
         }
 
-        if (!MenuManager.canReceiveNotificationInPrivateChat()) {
+        if (!UserManager.canReceiveNotificationInPrivateChat()) {
           return "Esse comando não está disponível no momento! 😢";
         }
 
@@ -174,7 +174,7 @@ export class commandHandler {
           return "Esse comando só pode ser executado em uma conversa privada! 😅";
         }
 
-        if (!MenuManager.canReceiveNotificationInPrivateChat()) {
+        if (!UserManager.canReceiveNotificationInPrivateChat()) {
           return "Esse comando não está disponível no momento! 😢";
         }
 

@@ -3,6 +3,7 @@ auth_session/
 models/
 build/
 bin/*
+.env
 yarn.lock
 package-lock.json
 baileys_store_multi.json
