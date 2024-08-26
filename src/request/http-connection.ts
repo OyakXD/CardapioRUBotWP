@@ -1,9 +1,9 @@
 import axios from "axios";
 
 export default class HttpConnection {
-  public static async get(url: string) {
+  public static async get(url: string, timeout: number = 2_000) {
     try {
-      await axios.get(url);
+      await axios.get(url, { timeout });
     } catch (error) {
       return false;
     }
