@@ -12,6 +12,8 @@ export class MenuManager {
     scheduleJob({ hour: 4, minute: 0, tz: "America/Fortaleza" }, () =>
       this.createMenu()
     );
+
+    this.createMenu();
   }
 
   public static async createMenu() {
