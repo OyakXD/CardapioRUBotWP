@@ -279,7 +279,7 @@ class WhatsappConnectorInstance {
   }
 
   public enableStore() {
-    return false;
+    return true;
   }
 
   public lastedWhatsappVersion() {
