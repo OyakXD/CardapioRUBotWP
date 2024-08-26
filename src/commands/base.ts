@@ -25,35 +25,45 @@ export class commandHandler {
     this.prefix = prefix || "!";
   }
 
-  public spam(command: string, delay: number = 5_000): boolean {
+  public spam(
+    userJid: string,
+    command: string,
+    delay: number = 5_000
+  ): boolean {
     const currentTime = new Date().getTime();
+    const spamKey = `${userJid}:${command}`;
 
-    if (this.spamCommand.has(command)) {
-      const lastTime = this.spamCommand.get(command)!;
+    if (this.spamCommand.has(spamKey)) {
+      const lastTime = this.spamCommand.get(spamKey)!;
 
       if (currentTime - lastTime < delay) {
         return true;
       }
     }
 
-    this.spamCommand.set(command, currentTime);
+    this.spamCommand.set(spamKey, currentTime);
 
-    setTimeout(() => this.spamCommand.delete(command), delay);
+    setTimeout(() => this.spamCommand.delete(spamKey), delay);
     return false;
   }
 
+  public extractMessageBody({ message }: proto.IWebMessageInfo): string {
+    if (message.ephemeralMessage) {
+      message = message.ephemeralMessage.message!;
+    }
+
+    return message.extendedTextMessage?.text || message.conversation || "";
+  }
+
   public async handle(messageInfo: proto.IWebMessageInfo, socket: WASocket) {
-    const { message } = messageInfo;
-    const body =
-      message.extendedTextMessage?.text || message.conversation || "";
+    const body = this.extractMessageBody(messageInfo);
 
     if (body.startsWith(this.prefix)) {
       const args = body.slice(this.prefix.length).trim().split(" ");
       const command = args.shift()?.toLowerCase().trim();
-
       const response = await this.finalHandle(command, args, messageInfo);
 
-      if (response && this.spam(command)) {
+      if (response && this.spam(messageInfo.key.remoteJid!, command)) {
         return "Você está executando muito este comando! por favor, aguarde! 😅";
       }
 
