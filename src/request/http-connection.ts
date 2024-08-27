@@ -3,7 +3,7 @@ import { WAVersion } from "baileys";
 import { load as loadHTML } from "cheerio";
 
 export default class HttpConnection {
-  public static async get(url: string, timeout: number = 4_000) {
+  public static async get(url: string, timeout: number = 7_000) {
     try {
       await axios.get(url, { timeout });
     } catch (error) {
