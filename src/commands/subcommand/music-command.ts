@@ -45,7 +45,6 @@ export class MusicCommand extends SubCommand {
       });
     }
 
-    let replyKey: proto.IMessageKey;
     let songsFound = 0;
 
     if (this.musicRunningCount >= this.maxMusicRunningCount) {
@@ -62,29 +61,28 @@ export class MusicCommand extends SubCommand {
       this.musicRunningCount--;
     };
 
-    const searchHandler = async (data: YoutubeSearchResult[]) => {
-      songsFound += data?.length ?? 0;
-
-      if (replyKey) {
-        await reply({
-          text: `Músicas encontradas: ${songsFound}`,
-          edit: replyKey,
-        });
-      }
-    };
-
-    const [searchReply, metadata]: [
-      proto.IWebMessageInfo,
-      YoutubeSearchResult[]
-    ] = await Promise.all([
-      reply({
+    const replyKey: proto.IMessageKey = (
+      await reply({
         text: "Coletando informações do link aguarde...",
-      }),
-      DDown.search(link, searchHandler),
-    ]);
+      })
+    ).key;
+
+    const metadata: YoutubeSearchResult[] = await DDown.search(
+      link,
+      async (data: YoutubeSearchResult[]) => {
+        songsFound += data?.length ?? 0;
+
+        if (replyKey) {
+          await reply({
+            text: `Músicas encontradas: ${songsFound}`,
+            edit: replyKey,
+          });
+        }
+      }
+    );
 
     /* o end-point retorna nullo caso não tenha informações. */
-    if (!searchReply?.key || !metadata || metadata.length === 0) {
+    if (!metadata || metadata.length === 0) {
       clearMusicTask();
 
       return await reply({
@@ -92,7 +90,6 @@ export class MusicCommand extends SubCommand {
         edit: replyKey,
       });
     }
-    replyKey = searchReply.key!;
 
     await reply({
       text: "Gerando dados da música, aguarde...",
