@@ -1,4 +1,6 @@
 import axios from "axios";
+import { WAVersion } from "baileys";
+import { load as loadHTML } from "cheerio";
 
 export default class HttpConnection {
   public static async get(url: string, timeout: number = 4_000) {
@@ -22,4 +24,45 @@ export default class HttpConnection {
   public static async sipac() {
     return await this.get("https://si3.ufc.br/sipac");
   }
+
+  public static async fetchLatestWhatsappVersion(
+    defaultVersion: [number, number, number]
+  ): Promise<{ version: WAVersion; isLatest: boolean; error?: string }> {
+    const useVersion = {
+      version: defaultVersion,
+      isLatest: false,
+    };
+
+    try {
+      const { data } = await axios.get(
+        "https://wppconnect.io/whatsapp-versions/",
+        { timeout: 5_000 }
+      );
+
+      const $ = loadHTML(data);
+      const versionMatch = $("main .row h3")
+        .first()
+        .text()
+        .match(/(\d+\.\d+\.\d+)/);
+
+      if (versionMatch) {
+        const version = versionMatch[0].split(".").map(Number) as WAVersion;
+
+        return {
+          version: version,
+          isLatest: true,
+        };
+      }
+
+      return useVersion;
+    } catch (error: any) {
+      return {
+        ...useVersion,
+        error: error.message,
+      };
+    }
+  }
 }
+
+export const fetchLatestWhatsappVersion =
+  HttpConnection.fetchLatestWhatsappVersion;

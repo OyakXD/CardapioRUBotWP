@@ -1,7 +1,6 @@
 import makeWASocket, {
   AnyMessageContent,
   DisconnectReason,
-  fetchLatestWaWebVersion,
   makeCacheableSignalKeyStore,
   makeInMemoryStore,
   MiscMessageGenerationOptions,
@@ -10,52 +9,55 @@ import makeWASocket, {
   WAMessageContent,
   WASocket,
 } from "baileys";
+import {
+  CommandHandler,
+  prefix as CommandPrefix,
+} from "./commands/command-base";
 import log from "log-beautify";
 import Pino from "pino";
-import { commandHandler, prefix as CommandPrefix } from "./commands/base";
+import GroupManager from "./manager/group/group-manager";
+import Ack from "./utils/ack";
 import { MenuManager } from "./manager/menu-manager";
 import { UserManager } from "./manager/user-manager";
 import { Boom } from "@hapi/boom";
 import { PrismaClient } from "@prisma/client";
-import GroupManager from "./manager/group/group-manager";
-import Ack from "./utils/ack";
+import { fetchLatestWhatsappVersion } from "./request/http-connection";
 
-class WhatsappConnectorInstance {
+export const WhatsappConnector = new (class WhatsappInstance {
   public socket: WASocket | undefined;
-  private commandHandler: commandHandler;
+  private commandHandler: CommandHandler;
   private store?: ReturnType<typeof makeInMemoryStore>;
-  private failedMessages: Map<string, number> = new Map();
   private maxRetriesFailedMessage: number = 3;
+  private tryingReconnect: boolean = false;
   private whatsappVersion: [number, number, number] = [2, 3000, 1015920675];
   private prisma: PrismaClient;
 
   constructor() {
-    this.commandHandler = new commandHandler(CommandPrefix);
+    this.commandHandler = new CommandHandler(CommandPrefix);
 
-    this.handlerInitializer();
+    this.connectToWhatsapp();
   }
 
-  public async handlerInitializer() {
+  public async connectToWhatsapp(connectCallback?: () => void) {
     try {
-      await this.initialize();
+      await this.socket?.ws.close();
+      await this.initialize(connectCallback);
     } catch (error) {
       log.error_(
         "[SOCKET (ERROR)] => Ocorreu um erro interno no baileys. Reiniciando em 2s...",
         error
       );
 
-      setTimeout(() => this.handlerInitializer(), 2_000);
+      setTimeout(() => this.connectToWhatsapp(connectCallback), 2_000);
     }
   }
 
-  public static connect() {
-    return new WhatsappConnectorInstance();
-  }
-
-  public async initialize() {
+  public async initialize(connectCallback?: () => void) {
     log.ok_(`[SOCKET (INFO)] => Iniciando bot...`);
-
     log.ok_(`[SOCKET (INFO)] => Carregando credenciais...`);
+
+    this.tryingReconnect = true;
+
     const [, , multiAuthState] = await Promise.all([
       MenuManager.initialize(),
       UserManager.initialize(),
@@ -64,17 +66,20 @@ class WhatsappConnectorInstance {
 
     const { state: authState, saveCreds } = multiAuthState;
 
-    if (this.lastedWhatsappVersion()) {
+    if (this.fetchWhatsappVersion()) {
       log.ok_(
         `[SOCKET (INFO)] => Buscando versão mais recente do WhatsApp Web...`
       );
 
-      const waWebVersion = await fetchLatestWaWebVersion({});
+      const waWebVersion = await fetchLatestWhatsappVersion(
+        this.whatsappVersion
+      );
       const { version, isLatest, error } = waWebVersion;
 
       if (error) {
         return log.error_(
-          "[SOCKET (ERROR)] => Erro ao buscar a versão mais recente do WhatsApp Web"
+          "[SOCKET (ERROR)] => Erro ao buscar a versão mais recente do WhatsApp Web:",
+          error
         );
       }
 
@@ -85,6 +90,9 @@ class WhatsappConnectorInstance {
       }
 
       this.whatsappVersion = version;
+      log.ok_(
+        `[SOCKET (INFO)] => Usando versão do WhatsApp Web: ${version.join(".")}`
+      );
     }
 
     const logger = Pino({
@@ -141,11 +149,13 @@ class WhatsappConnectorInstance {
           key: proto.IMessageKey
         ): Promise<WAMessageContent | undefined> => {
           if (this.store) {
-            const message = await this.store.loadMessage(
-              key.remoteJid!,
-              key.id!
+            const message = await this.store.loadMessage(key.remoteJid, key.id);
+
+            return (
+              message?.message || {
+                conversation: "Por favor, envie a mensagem novamente!",
+              }
             );
-            return message?.message || undefined;
           }
 
           // only if store is present
@@ -158,8 +168,8 @@ class WhatsappConnectorInstance {
       log.ok_(`[SOCKET (INFO)] => Iniciando cache...`);
 
       this.store = makeInMemoryStore({ logger });
-
       this.store.readFromFile("baileys_store_multi.json");
+
       setInterval(
         () => this.store.writeToFile("baileys_store_multi.json"),
         10_000
@@ -168,32 +178,52 @@ class WhatsappConnectorInstance {
     }
 
     this.socket.ev.on("connection.update", async (update) => {
-      const { connection, lastDisconnect } = update;
+      const { connection, lastDisconnect, receivedPendingNotifications } =
+        update;
 
-      if (connection === "close") {
-        const shouldReconnect =
-          (lastDisconnect?.error as Boom)?.output?.statusCode !==
-          DisconnectReason.loggedOut;
+      if (
+        receivedPendingNotifications &&
+        !(
+          this.socket.authState.creds &&
+          this.socket.authState.creds.myAppStateKeyId
+        )
+      ) {
+        this.socket.ev.flush();
+      }
 
-        log.warn_(
-          "connection closed due to",
-          lastDisconnect.error,
-          ", reconnecting",
-          shouldReconnect
-        );
-        if (shouldReconnect) {
-          WhatsappConnectorInstance.connect();
-        }
+      if (connection === "connecting") {
+        log.ok_(`[SOCKET (INFO)] => Conectando-se ao Whatsapp Web...`);
       } else if (connection === "open") {
         log.ok_(`[SOCKET (INFO)] => Carregando informações dos grupos...`);
 
         GroupManager.loadGroupsMetadata(this.socket!).then(() => {
+          this.tryingReconnect = false;
+
           log.ok_(
             `[SOCKET (INFO)] => Sessão aberta em ${
               this.socket.user.id.split(":")[0]
             }`
           );
+
+          if (connectCallback) {
+            connectCallback();
+          }
         });
+      } else if (connection === "close") {
+        const shouldReconnect =
+          (lastDisconnect?.error as Boom)?.output?.statusCode !==
+          DisconnectReason.loggedOut;
+
+        log.warn_(
+          `[SOCKET (ERROR)] => Conexão fechada devido a ${
+            lastDisconnect.error
+          } ${shouldReconnect && "reconectando em 2s..."}`.trim()
+        );
+        if (shouldReconnect) {
+          this.socket.ws.close();
+
+          setTimeout(() => this.connectToWhatsapp(), 2_000);
+        }
       }
     });
 
@@ -209,28 +239,7 @@ class WhatsappConnectorInstance {
           continue;
         }
 
-        const response = await this.commandHandler.handle(message, this.socket);
-
-        if (response) {
-          if (this.readMessageOnReceive()) {
-            await this.socket!.readMessages([message.key]);
-          }
-
-          /* Validar mensagens com erro antes de responder */
-          const retryNode = await this.createRetryNode(message);
-
-          if (retryNode) {
-            await this.sendMessage(
-              message.key.remoteJid,
-              {
-                text: response,
-              },
-              {
-                quoted: message,
-              }
-            );
-          }
-        }
+        this.commandHandler.handle(message);
       }
     });
 
@@ -246,62 +255,96 @@ class WhatsappConnectorInstance {
             text: "📞 Chamada rejeitada, não me ligue!",
           });
         } catch (error) {
-          log.error_(`Error ao cancelar chamada de ${call.chatId}:`);
+          log.error_(
+            `[SOCKET (ERROR)] => Error ao cancelar chamada de ${call.chatId}:`
+          );
         }
       }
     });
   }
 
+  /**
+   * É necessário chamar essa função para enviar mensagens
+   * Caso contrário, os erros interno gerados pelo "Baileys"
+   * não serão tratados corretamente, causando falha total
+   */
   public async sendMessage(
     jid: string,
     message: AnyMessageContent,
-    options?: MiscMessageGenerationOptions
+    options?: MiscMessageGenerationOptions,
+    alreadyTried: boolean = false
   ): Promise<proto.WebMessageInfo | undefined> {
-    try {
-      return await WhatsappConnector.socket?.sendMessage(jid, message, options);
-    } catch (error) {
-      log.error_(`Error sending message to jid ${jid}:`, error);
+    if (this.tryingReconnect) {
+      log.warn_(
+        `[SOCKET (ERROR)] => Tentando enviar mensagem para o jid ${jid} enquanto a conexão está sendo reestabelecida.`
+      );
+      return undefined;
+    }
+
+    let attempt = 0;
+
+    while (++attempt <= this.maxRetriesFailedMessage) {
+      try {
+        return await WhatsappConnector.socket?.sendMessage(
+          jid,
+          message,
+          options
+        );
+      } catch (error) {
+        const errorMessage = (error as Error).message || error.toString();
+
+        if (errorMessage.includes("connection closed")) {
+          log.warn_(
+            `[SOCKET (ERROR)] => Conexão fechada ao enviar mensagem para o jid ${jid}. Tentando novamente... (tentativa ${attempt}/${this.maxRetriesFailedMessage})`
+          );
+        } else {
+          log.warn_(
+            `[SOCKET (ERROR)] => Erro ao enviar mensagem para o jid ${jid} (tentativa ${attempt}/${this.maxRetriesFailedMessage})`,
+            error
+          );
+        }
+
+        if (attempt >= this.maxRetriesFailedMessage) {
+          if (!alreadyTried) {
+            if (errorMessage.includes("connection closed")) {
+              log.warn_(
+                `[SOCKET (ERROR)] => Conexão fechada ao enviar mensagem para o jid ${jid}. Tentando criar outra conexão...`
+              );
+
+              this.connectToWhatsapp(() => {
+                this.sendMessage(jid, message, options, true);
+              });
+
+              return undefined;
+            }
+          }
+
+          log.error_(
+            `[SOCKET (ERROR)] => Falha ao enviar mensagem para o jid ${jid} após ${attempt}/${this.maxRetriesFailedMessage} tentativas.`
+          );
+          return undefined;
+        }
+      }
     }
   }
 
-  private async createRetryNode(message: proto.IWebMessageInfo) {
-    const messageId = message.key.id;
-    let retryCount = this.failedMessages.get(messageId) || 0;
+  /**
+   * Se habilitado, as mensagens serão armazenadas em disco
+   * Ative para evitar o aviso "waiting for message" ao enviar mensagens
+   */
+  public enableStore() {
+    return true;
+  }
 
-    if (retryCount++ >= this.maxRetriesFailedMessage) {
-      this.failedMessages.delete(messageId);
-      return null;
-    } else {
-      this.failedMessages.set(messageId, retryCount);
-    }
-
-    return {
-      key: {
-        id: messageId,
-        remoteJid: message.key.remoteJid,
-        participant: message.key.participant,
-      },
-      message: message.message,
-      messageTimestamp: message.messageTimestamp,
-      status: message.status,
-    };
+  /**
+   * Se habilitado, tenta buscar a versão mais recente do WhatsApp Web
+   * Ative para evitar problemas de compatibilidade com o WhatsApp Web
+   */
+  public fetchWhatsappVersion() {
+    return true;
   }
 
   public getPrisma() {
     return this.prisma;
   }
-
-  public readMessageOnReceive() {
-    return false;
-  }
-
-  public enableStore() {
-    return true;
-  }
-
-  public lastedWhatsappVersion() {
-    return false;
-  }
-}
-
-export const WhatsappConnector = WhatsappConnectorInstance.connect();
+})();

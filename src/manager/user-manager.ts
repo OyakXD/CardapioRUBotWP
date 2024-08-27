@@ -27,10 +27,6 @@ export class UserManager {
         this.getUsers(),
       ]);
 
-      if (!menu) {
-        return;
-      }
-
       for (const user of users) {
         if (await this.canReceiveNotification(user)) {
           if (
@@ -125,7 +121,7 @@ export class UserManager {
   }
 
   public static async rememberSchedule() {
-    let currentDay = MenuManager.getCurrentDate().getDay();
+    const currentDay = MenuManager.getCurrentDate().getDay();
 
     if (currentDay === 0 || currentDay === 3) {
       const users = await this.getUsers();

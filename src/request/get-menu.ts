@@ -1,5 +1,5 @@
 import axios from "axios";
-import cheerio, { Cheerio, Element } from "cheerio";
+import cheerio, { load as loadHTML, Cheerio, Element } from "cheerio";
 import { Menu, ParserCategory } from "../types/types";
 
 export const previewMenuURL =
@@ -18,13 +18,9 @@ export class RequestMenu {
 
   public static async request() {
     try {
-      const response = await axios.get(previewMenuURL);
+      const response = await axios.get(previewMenuURL, { timeout: 10_000 });
 
-      if (response.status !== 200) {
-        return null;
-      }
-
-      const $ = cheerio.load(response.data);
+      const $ = loadHTML(response.data);
       const lunchTable = $("table.refeicao.almoco");
       const dinnerTable = $("table.refeicao.jantar");
 
