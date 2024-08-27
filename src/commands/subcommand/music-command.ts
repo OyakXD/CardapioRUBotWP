@@ -31,7 +31,7 @@ export class MusicCommand extends SubCommand {
   ): Promise<any> {
     const { chatPrivate } = data;
 
-    if (chatPrivate) {
+    if (!chatPrivate) {
       return await reply({
         text: "Esse comando só pode ser executado em uma conversa privada! 😅",
       });
