@@ -30,21 +30,21 @@ export class CommandHandler {
   constructor(prefix: string) {
     this.prefix = prefix || "!";
 
-    CommandHandler.register(new HelpCommand());
-    CommandHandler.register(new CardapioCommand());
-    CommandHandler.register(new StartCommand());
-    CommandHandler.register(new StopCommand());
+    // CommandHandler.register(new HelpCommand());
+    // CommandHandler.register(new CardapioCommand());
+    // CommandHandler.register(new StartCommand());
+    // CommandHandler.register(new StopCommand());
     CommandHandler.register(new MusicCommand());
-    CommandHandler.register(new MoodleCommand());
-    CommandHandler.register(new SigaaCommand());
-    CommandHandler.register(new SipacCommand());
-    CommandHandler.register(new RoastCommand());
-    CommandHandler.register(new GithubCommand());
-    CommandHandler.register(new XandaoCommand());
-    CommandHandler.register(new ZureaCommand());
-    CommandHandler.register(new ToggleCommand());
-    CommandHandler.register(new AmorCommand());
-    CommandHandler.register(new DebugCommand());
+    // CommandHandler.register(new MoodleCommand());
+    // CommandHandler.register(new SigaaCommand());
+    // CommandHandler.register(new SipacCommand());
+    // CommandHandler.register(new RoastCommand());
+    // CommandHandler.register(new GithubCommand());
+    // CommandHandler.register(new XandaoCommand());
+    // CommandHandler.register(new ZureaCommand());
+    // CommandHandler.register(new ToggleCommand());
+    // CommandHandler.register(new AmorCommand());
+    // CommandHandler.register(new DebugCommand());
   }
 
   public static register(command: SubCommand) {

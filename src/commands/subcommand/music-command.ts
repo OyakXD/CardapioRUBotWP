@@ -101,7 +101,7 @@ export class MusicCommand extends SubCommand {
     /* Estrutura para gerenciar as mensagem de progresso */
     const progressData = {
       message: [] as string[],
-      queries: {} as { [_: string]: any },
+      queries: {} as { [_: string]: { progress: number; text: string } },
       count: 0,
       downloaded: 0,
       total: songs.length,
@@ -112,13 +112,25 @@ export class MusicCommand extends SubCommand {
         (progressData.downloaded / progressData.total) * 100
       );
 
+      let totalQueriesProgress = 0;
+      let queryCount = 0;
+
+      for (const status of Object.values(progressData.queries)) {
+        totalQueriesProgress += status.progress;
+        queryCount++;
+      }
+
+      const averageQueryProgress =
+        queryCount > 0 ? totalQueriesProgress / queryCount : 0;
+
       if (progressData.count === 0) {
         progressData.message = ["Aguardando serviço de download..."];
       } else {
         progressData.message = [
           `Você pode ver o progresso de download das músicas abaixo:`,
           ``,
-          `Progresso: ${progressData.downloaded}/${progressData.total} (${percentage}%)`,
+          `Progresso Geral: ${progressData.downloaded}/${progressData.total} (${percentage}%)`,
+          `Progresso Médio: ${averageQueryProgress}`,
         ];
       }
 
