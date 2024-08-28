@@ -9,8 +9,8 @@ import { User } from "@prisma/client";
 import { AnyMessageContent } from "baileys";
 
 export class UserManager {
-  private static isSendingMenu = false;
-  private static isSendingReminder = false;
+  public static isSendingMenu = false;
+  public static isSendingReminder = false;
 
   public static async initialize() {
     scheduleJob({ hour: 10, minute: 40, tz: "America/Fortaleza" }, () =>
