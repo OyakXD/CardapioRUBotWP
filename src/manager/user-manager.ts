@@ -6,8 +6,12 @@ import { scheduleJob } from "node-schedule";
 import { MenuParser } from "../parser/menu-parser";
 import { WhatsappConnector } from "..";
 import { User } from "@prisma/client";
+import { AnyMessageContent } from "baileys";
 
 export class UserManager {
+  private static isSendingMenu = false;
+  private static isSendingReminder = false;
+
   public static async initialize() {
     scheduleJob({ hour: 10, minute: 40, tz: "America/Fortaleza" }, () =>
       this.sendNotification("lunch")
@@ -15,17 +19,23 @@ export class UserManager {
     scheduleJob({ hour: 16, minute: 30, tz: "America/Fortaleza" }, () =>
       this.sendNotification("dinner")
     );
-    scheduleJob({ hour: 20, minute: 0, tz: "America/Fortaleza" }, () =>
+    scheduleJob({ hour: 20, minute: 10, tz: "America/Fortaleza" }, () =>
       this.rememberSchedule()
     );
   }
 
   public static async sendNotification(type: "lunch" | "dinner") {
+    if (UserManager.isSendingMenu) {
+      return;
+    }
+
     if (MenuManager.isMiddleWeek()) {
       const [menu, users] = await Promise.all([
         MenuParser.mountMenu(type),
         this.getUsers(),
       ]);
+
+      UserManager.isSendingMenu = true;
 
       for (const user of users) {
         if (await this.canReceiveNotification(user)) {
@@ -40,6 +50,8 @@ export class UserManager {
           }
         }
       }
+
+      UserManager.isSendingMenu = false;
     }
   }
 
@@ -121,10 +133,26 @@ export class UserManager {
   }
 
   public static async rememberSchedule() {
+    if (UserManager.isSendingReminder) {
+      return;
+    }
+
     const currentDay = MenuManager.getCurrentDate().getDay();
 
     if (currentDay === 0 || currentDay === 3) {
+      const receiveNotificationPrivate =
+        this.canReceiveNotificationInPrivateChat();
       const users = await this.getUsers();
+
+      const mediaMessage: AnyMessageContent = {
+        caption:
+          "Lembre de agendar seu almoço e jantar! 😋\nhttps://si3.ufc.br/sigaa",
+        image: fs.readFileSync("images/agendamento.jpg"),
+        width: 1080,
+        height: 1080,
+      };
+
+      UserManager.isSendingReminder = true;
 
       for (const user of users) {
         if (!(await this.canReceiveNotification(user))) {
@@ -133,16 +161,9 @@ export class UserManager {
 
         const isGroup = !this.isChatPrivate(user.jid);
 
-        if (
-          (this.canReceiveNotificationInPrivateChat() && !isGroup) ||
-          isGroup
-        ) {
-          WhatsappConnector.sendMessage(user.jid, {
-            caption:
-              "Lembre de agendar seu almoço e jantar! 😋\nhttps://si3.ufc.br/sigaa",
-            image: fs.readFileSync("images/agendamento.jpg"),
-            width: 1080,
-            height: 1080,
+        if ((receiveNotificationPrivate && !isGroup) || isGroup) {
+          await WhatsappConnector.sendMessage(user.jid, {
+            ...mediaMessage,
             ...(isGroup && {
               mentions:
                 GroupManager.getGroupMetadata(user.jid)?.participants.map(
@@ -152,6 +173,8 @@ export class UserManager {
           });
         }
       }
+
+      UserManager.isSendingReminder = false;
     }
   }
 }
