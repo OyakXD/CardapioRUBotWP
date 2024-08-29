@@ -36,34 +36,75 @@ export class EmojiParser {
     [MENU_TYPE_SUCO]: "🍹",
   };
 
-  /**
-   * Retorna o emoji correspondente ao item
-   *
-   * @param item Item, exemplo: "Banana", "Cuscuz"...
-   * @param category Categoria do item, exemplo: SOBREMESSA, GUARNIÇÃO...
-   * @param index Índice do item na lista
-   *
-   * Exemplo de estrutura:
-   *
-   * SOBREMESSA:
-   *   0: Banana {emoji}
-   *   1: Doce {emoji}
-   *
-   * GUARNIÇÃO:
-   *   0: Cuscuz {emoji}
-   *
-   * find("Banana", MENU_TYPE_SOBREMSA, 0) => {emoji}
-   *
-   * @returns Emoji correspondente ou uma string vazia se o emoji não for encontrado.
-   */
+  private dessertEmojis: { [key: string]: string } = {
+    banana: "🍌",
+    maca: "🍎",
+    melancia: "🍉",
+    laranja: "🍊",
+    mamao: "🥭",
+    doce: "🍬",
+  };
+
+  private accompanimentEmoji: { [key: string]: string[] } = {
+    "🍚": ["arroz"],
+    "🫘": ["feijao"],
+  };
+
+  private garnishEmojis: { [key: string]: string[] } = {
+    "🌽": ["cuscuz", "cuscuz de milho, farofa"],
+    "🍝": ["macarrao", "espaguete", "penne", "fusilli"],
+    "🍲": ["pure de abobora"],
+  };
+
+  private normalizeText(text: string): string {
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z]/g, "")
+      .replace(/\s+/g, "");
+  }
+
   public find(item: string, category: MenuCategory, index: number): string {
-    /** Nesse código puxar categoria do item, e pegar o emoji com base no indice */
-    const emojiCategory = this.emojis[category] ?? [];
+    const normalizedItem = this.normalizeText(item);
+
+    if (this.dessertEmojis[normalizedItem]) {
+      console.log();
+      return this.dessertEmojis[normalizedItem];
+    }
+
+    if (category == MENU_TYPE_ACOMPANHAMENTO) {
+      for (const [emoji, keywords] of Object.entries(this.accompanimentEmoji)) {
+        if (keywords.some((keyword) => normalizedItem.includes(keyword))) {
+          return emoji;
+        }
+      }
+    }
+
+    if (category == MENU_TYPE_GUARNICAO) {
+      for (const [emoji, keywords] of Object.entries(this.garnishEmojis)) {
+        if (
+          keywords.some((keyword) =>
+            normalizedItem.includes(keyword.replace(/\s+/g, ""))
+          )
+        ) {
+          return emoji;
+        }
+      }
+    }
+
+    const emojiCategory = this.emojis[category];
+
+    if (!emojiCategory) {
+      return "";
+    }
 
     const emojiList = Array.isArray(emojiCategory)
       ? emojiCategory
       : [emojiCategory];
 
-    return emojiList[index] ?? "";
+    const emoji = emojiList[index % emojiList.length];
+
+    return emoji;
   }
 }
