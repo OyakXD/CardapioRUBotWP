@@ -8,7 +8,7 @@ export class CardapioCommand extends SubCommand {
   }
 
   public getCommandLabels(): string[] {
-    return [];
+    return ["menu", "cardápio"];
   }
 
   public getDescription(): string {
