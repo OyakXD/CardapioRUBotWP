@@ -16,7 +16,7 @@ export default class HttpConnection {
   public static async sigaa(): Promise<boolean> {
     try {
       const response = await axios.get('https://si3.ufc.br/sigaa/verTelaLogin.do', {
-        timeout: 5000,
+        timeout: 10_000,
       });
       return response.status === 200;
     } catch (error) {
