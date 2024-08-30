@@ -53,7 +53,7 @@ export class EmojiParser {
   private garnishEmojis: { [key: string]: string[] } = {
     "🌽": ["cuscuz", "cuscuz de milho, farofa"],
     "🍝": ["macarrao", "espaguete", "penne", "fusilli"],
-    "🍲": ["pure de abobora"],
+    "🍛": ["pure", "pirao"],
   };
 
   private normalizeText(text: string): string {
@@ -61,15 +61,14 @@ export class EmojiParser {
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z]/g, "")
-      .replace(/\s+/g, "");
+      .replace(/[^a-z]/g, "");
   }
 
+  /** Nesse código puxar categoria do item, e pegar o emoji com base no indice */
   public find(item: string, category: MenuCategory, index: number): string {
     const normalizedItem = this.normalizeText(item);
 
     if (this.dessertEmojis[normalizedItem]) {
-      console.log();
       return this.dessertEmojis[normalizedItem];
     }
 
@@ -83,11 +82,7 @@ export class EmojiParser {
 
     if (category == MENU_TYPE_GUARNICAO) {
       for (const [emoji, keywords] of Object.entries(this.garnishEmojis)) {
-        if (
-          keywords.some((keyword) =>
-            normalizedItem.includes(keyword.replace(/\s+/g, ""))
-          )
-        ) {
+        if (keywords.some((keyword) => normalizedItem.includes(keyword))) {
           return emoji;
         }
       }
