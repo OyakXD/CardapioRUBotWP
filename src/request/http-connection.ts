@@ -5,23 +5,18 @@ import { load as loadHTML } from "cheerio";
 export default class HttpConnection {
   public static async get(url: string, timeout: number = 7_000) {
     try {
-      await axios.get(url, { timeout });
-    } catch (error) {
-      return false;
-    }
-
-    return true;
-  }
-
-  public static async sigaa(): Promise<boolean> {
-    try {
-      const response = await axios.get('https://si3.ufc.br/sigaa/verTelaLogin.do', {
-        timeout: 10_000,
+      const response = await axios.get(url, {
+        timeout,
       });
+
       return response.status === 200;
     } catch (error) {
       return false;
     }
+  }
+
+  public static async sigaa(): Promise<boolean> {
+    return await this.get('https://si3.ufc.br/sigaa/verTelaLogin.do', 10_000);
   }
 
   public static async moodle() {
