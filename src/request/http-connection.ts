@@ -13,8 +13,15 @@ export default class HttpConnection {
     return true;
   }
 
-  public static async sigaa() {
-    return await this.get("https://si3.ufc.br/sigaa");
+  public static async sigaa(): Promise<boolean> {
+    try {
+      const response = await axios.get('https://si3.ufc.br/sigaa/verTelaLogin.do', {
+        timeout: 5000,
+      });
+      return response.status === 200;
+    } catch (error) {
+      return false;
+    }
   }
 
   public static async moodle() {
