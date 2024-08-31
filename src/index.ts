@@ -1,6 +1,6 @@
 import makeWASocket, {
   AnyMessageContent,
-  DisconnectReason,
+  BaileysEventMap,
   makeCacheableSignalKeyStore,
   makeInMemoryStore,
   MiscMessageGenerationOptions,
@@ -9,39 +9,43 @@ import makeWASocket, {
   WAMessageContent,
   WASocket,
 } from "baileys";
-import {
-  CommandHandler,
-  prefix as CommandPrefix,
-} from "./commands/command-base";
-import log from "log-beautify";
-import Pino from "pino";
-import GroupManager from "./manager/group/group-manager";
-import Ack from "./utils/ack";
+import { CommandHandler } from "./commands/command-base";
 import { MenuManager } from "./manager/menu-manager";
 import { UserManager } from "./manager/user-manager";
-import { Boom } from "@hapi/boom";
 import { PrismaClient } from "@prisma/client";
 import { fetchLatestWhatsappVersion } from "./request/http-connection";
+import log from "log-beautify";
+import Pino from "pino";
+import Ack from "./utils/ack";
+import SocketEvent from "./socket/socket-event";
+import NodeCache from "node-cache";
 
 export const WhatsappConnector = new (class WhatsappInstance {
   public socket: WASocket | undefined;
-  private commandHandler: CommandHandler;
+  public commandHandler: CommandHandler;
+  public tryingReconnect: boolean = false;
+  public prisma: PrismaClient;
+
+  private socketEvent: SocketEvent;
   private store?: ReturnType<typeof makeInMemoryStore>;
   private maxRetriesFailedMessage: number = 3;
-  private tryingReconnect: boolean = false;
   private whatsappVersion: [number, number, number] = [2, 3000, 1015920675];
-  private prisma: PrismaClient;
+  private msgRetryCounterCache: NodeCache = new NodeCache();
 
   constructor() {
-    this.commandHandler = new CommandHandler(CommandPrefix);
+    this.commandHandler = new CommandHandler();
+    this.socketEvent = new SocketEvent(this);
+    this.prisma = new PrismaClient();
 
-    this.connectToWhatsapp();
+    Promise.all([MenuManager.initialize(), UserManager.initialize()]);
   }
 
   public async connectToWhatsapp(connectCallback?: () => void) {
     try {
       await this.socket?.ws.close();
       await this.initialize(connectCallback);
+
+      setTimeout(() => this.connectToWhatsapp(), 1_000 * 60 * 60 * 10);
     } catch (error) {
       log.error_(
         "[SOCKET (ERROR)] => Ocorreu um erro interno no baileys. Reiniciando em 2s...",
@@ -58,13 +62,9 @@ export const WhatsappConnector = new (class WhatsappInstance {
 
     this.tryingReconnect = true;
 
-    const [, , multiAuthState] = await Promise.all([
-      MenuManager.initialize(),
-      UserManager.initialize(),
-      useMultiFileAuthState("auth_session"),
-    ]);
-
-    const { state: authState, saveCreds } = multiAuthState;
+    const { state: authState, saveCreds } = await useMultiFileAuthState(
+      "auth_session"
+    );
 
     if (this.fetchWhatsappVersion()) {
       log.ok_(
@@ -116,8 +116,6 @@ export const WhatsappConnector = new (class WhatsappInstance {
       },
     });
 
-    this.prisma = new PrismaClient();
-
     log.ok_(`[SOCKET (INFO)] => Criando socket...`);
 
     this.socket = makeWASocket({
@@ -133,6 +131,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
         );
         return !!msg.syncType;
       },
+      msgRetryCounterCache: this.msgRetryCounterCache,
       auth: {
         creds: authState.creds,
         /** caching makes the store faster to send/recv messages */
@@ -144,24 +143,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
           jid && !jid.endsWith("@s.whatsapp.net") && !jid.endsWith("@g.us")
         );
       },
-      ...(this.enableStore() && {
-        getMessage: async (
-          key: proto.IMessageKey
-        ): Promise<WAMessageContent | undefined> => {
-          if (this.store) {
-            const message = await this.store.loadMessage(key.remoteJid, key.id);
-
-            return (
-              message?.message || {
-                conversation: "Por favor, envie a mensagem novamente!",
-              }
-            );
-          }
-
-          // only if store is present
-          return proto.Message.fromObject({});
-        },
-      }),
+      ...(this.enableStore() && this.getMessage),
     });
 
     if (this.enableStore()) {
@@ -177,89 +159,12 @@ export const WhatsappConnector = new (class WhatsappInstance {
       this.store.bind(this.socket.ev);
     }
 
-    this.socket.ev.on("connection.update", async (update) => {
-      const { connection, lastDisconnect, receivedPendingNotifications } =
-        update;
-
-      if (
-        receivedPendingNotifications &&
-        !(
-          this.socket.authState.creds &&
-          this.socket.authState.creds.myAppStateKeyId
-        )
-      ) {
-        this.socket.ev.flush();
+    this.socket.ev.process((events: Partial<BaileysEventMap>) => {
+      if (events["creds.update"]) {
+        return saveCreds();
       }
 
-      if (connection === "connecting") {
-        log.ok_(`[SOCKET (INFO)] => Conectando-se ao Whatsapp Web...`);
-      } else if (connection === "open") {
-        log.ok_(`[SOCKET (INFO)] => Carregando informações dos grupos...`);
-
-        GroupManager.loadGroupsMetadata(this.socket!).then(() => {
-          this.tryingReconnect = false;
-
-          log.ok_(
-            `[SOCKET (INFO)] => Sessão aberta em ${
-              this.socket.user.id.split(":")[0]
-            }`
-          );
-
-          if (connectCallback) {
-            connectCallback();
-          }
-        });
-      } else if (connection === "close") {
-        const shouldReconnect =
-          (lastDisconnect?.error as Boom)?.output?.statusCode !==
-          DisconnectReason.loggedOut;
-
-        log.warn_(
-          `[SOCKET (ERROR)] => Conexão fechada devido a ${
-            lastDisconnect.error
-          } ${shouldReconnect && "reconectando em 2s..."}`.trim()
-        );
-        if (shouldReconnect) {
-          this.socket.ws.close();
-
-          setTimeout(() => this.connectToWhatsapp(), 2_000);
-        }
-      }
-    });
-
-    this.socket.ev.on("creds.update", saveCreds);
-
-    this.socket.ev.on("messages.upsert", async ({ messages, type }) => {
-      if (type !== "notify") {
-        return;
-      }
-
-      for (const message of messages) {
-        if (!message.message || message.message?.pollUpdateMessage) {
-          continue;
-        }
-
-        this.commandHandler.handle(message);
-      }
-    });
-
-    this.socket.ev.on("call", async (calls) => {
-      for (const call of calls) {
-        try {
-          if (call.isGroup || call.status !== "offer") {
-            continue;
-          }
-
-          await this.socket.rejectCall(call.id, call.chatId);
-          await this.sendMessage(call.chatId, {
-            text: "📞 Chamada rejeitada, não me ligue!",
-          });
-        } catch (error) {
-          log.error_(
-            `[SOCKET (ERROR)] => Error ao cancelar chamada de ${call.chatId}:`
-          );
-        }
-      }
+      this.socketEvent.handleEvents(events, { connectCallback });
     });
   }
 
@@ -328,6 +233,18 @@ export const WhatsappConnector = new (class WhatsappInstance {
     }
   }
 
+  public async getMessage(
+    key: proto.IMessageKey
+  ): Promise<WAMessageContent | undefined> {
+    if (this.store) {
+      const message = await this.store.loadMessage(key.remoteJid, key.id);
+
+      return message?.message || undefined;
+    }
+
+    return proto.Message.fromObject({});
+  }
+
   /**
    * Se habilitado, as mensagens serão armazenadas em disco
    * Ative para evitar o aviso "waiting for message" ao enviar mensagens
@@ -348,3 +265,5 @@ export const WhatsappConnector = new (class WhatsappInstance {
     return this.prisma;
   }
 })();
+
+WhatsappConnector.connectToWhatsapp();

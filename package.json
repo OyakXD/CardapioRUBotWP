@@ -29,6 +29,7 @@
     "github-username-regex-js": "^1.0.0",
     "log-beautify": "^1.2.0",
     "nock": "^13.5.5",
+    "node-cache": "^5.1.2",
     "node-schedule": "^2.1.1",
     "qrcode-terminal": "^0.12.0",
     "vitest": "^2.0.5"

@@ -27,7 +27,7 @@ export class CommandHandler {
   private spamCommand: Map<string, number> = new Map();
   public static commands: SubCommand[] = [];
 
-  constructor(prefix: string) {
+  constructor(prefix: string = this.prefix) {
     this.prefix = prefix || "!";
 
     CommandHandler.register(new HelpCommand());
