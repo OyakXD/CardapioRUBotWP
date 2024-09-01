@@ -14,7 +14,7 @@ export class OnibusCommand extends SubCommand {
   }
 
   public getDescription(): string {
-    return "Veja os horários do onibus";
+    return "Veja os horários do ônibus";
   }
 
   public async execute(reply: ReplyMessageFunction): Promise<any> {
