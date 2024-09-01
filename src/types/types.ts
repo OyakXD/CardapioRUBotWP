@@ -12,6 +12,20 @@ export interface ParserMenu {
   date: string;
 }
 
+export interface ParserBus {
+  updatedText: string;
+  stopsText: string;
+  routeText: string;
+  stopsDetails: string;
+  returnRouteText: string;
+  returnStopsDetails: string;
+  image: {
+    url: string;
+    width: number;
+    height: number;
+  };
+}
+
 export interface YoutubeSearchResult {
   success: boolean;
   message: string;

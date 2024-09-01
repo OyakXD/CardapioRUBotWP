@@ -1,5 +1,6 @@
 import { MenuManager } from "../manager/menu-manager";
 import { Menu } from "../types/types";
+import Utils from "../utils/utils";
 import { EmojiParser } from "./emoji-parser";
 
 export const MENU_TYPE_PRINCIPAL = "Principal";
@@ -54,7 +55,7 @@ export class MenuParser {
   }
 
   public static getMenuHead(date: string) {
-    const currentTime = MenuManager.getCurrentDate();
+    const currentTime = Utils.getCurrentDate();
     const currentHour = parseInt(
       currentTime.toLocaleTimeString("pt-BR", {
         timeZone: "America/Fortaleza",

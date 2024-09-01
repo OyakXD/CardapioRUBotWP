@@ -7,6 +7,7 @@ import { MenuParser } from "../parser/menu-parser";
 import { WhatsappConnector } from "..";
 import { User } from "@prisma/client";
 import { AnyMessageContent } from "baileys";
+import Utils from "../utils/utils";
 
 export class UserManager {
   public static isSendingMenu = false;
@@ -29,7 +30,7 @@ export class UserManager {
       return;
     }
 
-    if (MenuManager.isMiddleWeek()) {
+    if (Utils.isMiddleWeek()) {
       const [menu, users] = await Promise.all([
         MenuParser.mountMenu(type),
         this.getUsers(),
@@ -137,7 +138,7 @@ export class UserManager {
       return;
     }
 
-    const currentDay = MenuManager.getCurrentDate().getDay();
+    const currentDay = Utils.getCurrentDate().getDay();
 
     if (currentDay === 0 || currentDay === 3) {
       const receiveNotificationPrivate =

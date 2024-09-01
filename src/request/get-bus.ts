@@ -1,28 +1,25 @@
-import axios, { AxiosResponse } from "axios";
-import cheerio, { load as loadHTML } from "cheerio";
+import axios from "axios";
+import { load as loadHTML } from "cheerio";
+import { ParserBus } from "../types/types";
+
+export const previewMenuURL =
+  "https://www.quixada.ufc.br/itinerario-dos-onibus/";
 
 export class RequestBus {
-  private url: string;
-
-  constructor() {
-    this.url = "https://www.quixada.ufc.br/itinerario-dos-onibus/";
-  }
-
-  public async getBusScheduleInfoIda(): Promise<{
-    updatedText: string;
-    stopsText: string;
-    routeText: string;
-    stopsDetails: string;
-  }> {
+  public static async get(): Promise<ParserBus | null> {
     try {
-      const response: AxiosResponse<string> = await axios.get(this.url);
-      const html: string = response.data;
+      const response = await axios.get(previewMenuURL, { timeout: 10_000 });
 
-      const $ = loadHTML(html);
+      const $ = loadHTML(response.data);
 
       const updatedText = $('p:contains("Atualizado em")').text().trim();
       const stopsText = $('h4:contains("PARADAS")').text().trim();
       const routeText = $('span:contains("Rota de ida")')
+        .parent()
+        .text()
+        .trim();
+
+      const returnRouteText = $('span:contains("Rota de retorno")')
         .parent()
         .text()
         .trim();
@@ -35,48 +32,39 @@ export class RequestBus {
         .get()
         .join("\n");
 
-      return { updatedText, stopsText, routeText, stopsDetails };
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  public async getBusScheduleInfoRetorno(): Promise<{
-    returnRouteText: string;
-    returnStopsDetails: string;
-  }> {
-    try {
-      const response: AxiosResponse<string> = await axios.get(this.url);
-      const html: string = response.data;
-
-      const $ = loadHTML(html);
-
-      // Extrair o texto da "ALTERAÇÃO NO PONTO DE EMBARQUE"
-      const returnRouteText = $('span:contains("Rota de retorno")')
-        .parent()
-        .text()
-        .trim();
-
-      // Extrair os detalhes das paradas apenas para "Rota de retorno"
       const returnStopsDetails = $(
         'span:contains("ALTERAÇÃO NO PONTO DE EMBARQUE")'
       )
         .parent()
-        .parent() // Sobe para o <li> pai
-        .nextAll("li") // Seleciona todos os <li> seguintes que são paradas de retorno
+        .parent()
+        .nextAll("li")
         .map((i, el) => $(el).text().trim())
         .get()
         .join("\n");
 
-      return { returnRouteText, returnStopsDetails };
+      const imageUrl = $("img.wp-image-23084").attr("src").trim();
+      const imageWith = Number(
+        $("img.wp-image-23084").attr("width").trim() || 2250
+      );
+      const imageHeight = Number(
+        $("img.wp-image-23084").attr("height").trim() || 2250
+      );
+
+      return {
+        updatedText,
+        stopsText,
+        routeText,
+        stopsDetails,
+        returnRouteText,
+        returnStopsDetails,
+        image: {
+          url: imageUrl,
+          width: imageWith,
+          height: imageHeight,
+        },
+      };
     } catch (error) {
-      console.error(
-        "Erro ao realizar o web scraping para rota de retorno:",
-        error
-      );
-      throw new Error(
-        "Erro ao obter as informações do site para rota de retorno."
-      );
+      return null;
     }
   }
 }

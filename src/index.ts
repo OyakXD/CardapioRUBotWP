@@ -19,6 +19,8 @@ import Pino from "pino";
 import Ack from "./utils/ack";
 import SocketEvent from "./socket/socket-event";
 import NodeCache from "node-cache";
+import { RequestBus } from "./request/get-bus";
+import { BusManager } from "./manager/bus-manager";
 
 export const WhatsappConnector = new (class WhatsappInstance {
   public socket: WASocket | undefined;
@@ -37,7 +39,11 @@ export const WhatsappConnector = new (class WhatsappInstance {
     this.socketEvent = new SocketEvent(this);
     this.prisma = new PrismaClient();
 
-    Promise.all([MenuManager.initialize(), UserManager.initialize()]);
+    Promise.all([
+      MenuManager.initialize(),
+      BusManager.initialize(),
+      UserManager.initialize(),
+    ]);
   }
 
   public async connectToWhatsapp(connectCallback?: () => void) {
@@ -159,13 +165,9 @@ export const WhatsappConnector = new (class WhatsappInstance {
       this.store.bind(this.socket.ev);
     }
 
-    this.socket.ev.process((events: Partial<BaileysEventMap>) => {
-      if (events["creds.update"]) {
-        return saveCreds();
-      }
-
-      this.socketEvent.handleEvents(events, { connectCallback });
-    });
+    this.socket.ev.process((events: Partial<BaileysEventMap>) =>
+      this.socketEvent.handleEvents(events, { connectCallback, saveCreds })
+    );
   }
 
   /**

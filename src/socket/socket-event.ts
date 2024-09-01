@@ -4,6 +4,11 @@ import { Boom } from "@hapi/boom";
 import log from "log-beautify";
 import GroupManager from "../manager/group/group-manager";
 
+interface SocketHandleEventsOptions {
+  connectCallback: () => void;
+  saveCreds: () => void;
+}
+
 export default class SocketEvent {
   private connector: typeof WhatsappConnector;
 
@@ -13,8 +18,12 @@ export default class SocketEvent {
 
   public async handleEvents(
     events: Partial<BaileysEventMap>,
-    { connectCallback }: { connectCallback: () => void }
+    { connectCallback, saveCreds }: SocketHandleEventsOptions
   ): Promise<void> {
+    if (events["creds.update"]) {
+      saveCreds();
+    }
+
     if (events["connection.update"]) {
       this.handleConnectionUpdate(events["connection.update"], connectCallback);
     }

@@ -1,6 +1,4 @@
-import { MenuManager } from "../../manager/menu-manager";
-import { MenuParser } from "../../parser/menu-parser";
-import { RequestBus } from "../../request/get-bus";
+import { BusManager } from "../../manager/bus-manager";
 import { ReplyMessageFunction, SubCommand } from "../sub-command";
 import fs from "fs";
 
@@ -10,7 +8,7 @@ export class OnibusCommand extends SubCommand {
   }
 
   public getCommandLabels(): string[] {
-    return ["horarios", "ônibus"];
+    return ["bus", "horarios", "ônibus"];
   }
 
   public getDescription(): string {
@@ -18,11 +16,15 @@ export class OnibusCommand extends SubCommand {
   }
 
   public async execute(reply: ReplyMessageFunction): Promise<any> {
-    const scrapper = new RequestBus();
-    const { updatedText, stopsText, routeText, stopsDetails } =
-      await scrapper.getBusScheduleInfoIda();
-    const { returnRouteText, returnStopsDetails } =
-      await scrapper.getBusScheduleInfoRetorno();
+    const {
+      updatedText,
+      stopsText,
+      routeText,
+      stopsDetails,
+      returnRouteText,
+      returnStopsDetails,
+      image,
+    } = await BusManager.getBus();
 
     const formattedStopsIda = stopsDetails
       .split("\n")
@@ -36,8 +38,8 @@ export class OnibusCommand extends SubCommand {
 
     await reply({
       image: fs.readFileSync("images/bus.jpg"),
-      height: 820,
-      width: 828,
+      height: image.height ?? 2250,
+      width: image.width ?? 2250,
       caption:
         updatedText +
         "\n\n" +
