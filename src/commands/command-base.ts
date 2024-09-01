@@ -19,6 +19,7 @@ import { SigaaCommand } from "./subcommand/sigaa-command";
 import { SipacCommand } from "./subcommand/sipac-command";
 import { XandaoCommand } from "./subcommand/xandao-command";
 import { ZureaCommand } from "./subcommand/zurea-command";
+import { OnibusCommand } from "./subcommand/onibus-command";
 
 export const prefix = "!";
 
@@ -45,6 +46,7 @@ export class CommandHandler {
     CommandHandler.register(new ToggleCommand());
     CommandHandler.register(new AmorCommand());
     CommandHandler.register(new DebugCommand());
+    CommandHandler.register(new OnibusCommand());
   }
 
   public static register(command: SubCommand) {
