@@ -15,7 +15,7 @@ export class MoodleCommand extends SubCommand {
   }
 
   public async execute(reply: ReplyMessageFunction): Promise<any> {
-    if (await HttpConnection.sigaa()) {
+    if (await HttpConnection.moodle()) {
       await reply({
         text: "Moodle está online! ✅\nhttps://moodle2.quixada.ufc.br",
       });

@@ -15,7 +15,7 @@ export class SipacCommand extends SubCommand {
   }
 
   public async execute(reply: ReplyMessageFunction): Promise<any> {
-    if (await HttpConnection.sigaa()) {
+    if (await HttpConnection.sipac()) {
       await reply({
         text: "SIPAC está online! ✅\nhttps://si3.ufc.br/sipac",
       });

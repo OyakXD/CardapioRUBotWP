@@ -3,28 +3,51 @@ import { WAVersion } from "baileys";
 import { load as loadHTML } from "cheerio";
 
 export default class HttpConnection {
-  public static async get(url: string, timeout: number = 7_000) {
+  public static async get(url: string, timeout: number = 6_000) {
     try {
-      const response = await axios.get(url, {
+      return await axios.get(url, {
         timeout,
       });
-
-      return response.status === 200;
     } catch (error) {
       return false;
     }
   }
 
   public static async sigaa(): Promise<boolean> {
-    return await this.get('https://si3.ufc.br/sigaa/verTelaLogin.do', 10_000);
-  }
+    const response = await this.get("https://si3.ufc.br/sigaa/verTelaLogin.do");
 
-  public static async moodle() {
-    return await this.get("https://moodle2.quixada.ufc.br");
+    return response ? this.si3AuthValidation(response.data) : false;
   }
 
   public static async sipac() {
-    return await this.get("https://si3.ufc.br/sipac");
+    const response = await this.get("https://si3.ufc.br/sipac/login.jsf");
+
+    return response ? this.si3AuthValidation(response.data) : false;
+  }
+
+  public static async moodle() {
+    const response = await this.get(
+      "https://moodle2.quixada.ufc.br/login/index.php"
+    );
+
+    return response ? this.moodleAuthValidation(response.data) : false;
+  }
+
+  public static moodleAuthValidation(content: any) {
+    const $ = loadHTML(content);
+
+    return (
+      $('p:contains("Acesse com as credenciais")').length > 0 &&
+      $("form").length > 0
+    );
+  }
+
+  public static si3AuthValidation(content: any) {
+    const $ = loadHTML(content);
+
+    return (
+      $('h3:contains("Entrar no Sistema")').length > 0 && $("form").length > 0
+    );
   }
 
   public static async fetchLatestWhatsappVersion(
