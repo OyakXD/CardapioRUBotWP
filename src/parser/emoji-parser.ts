@@ -43,6 +43,7 @@ export class EmojiParser {
     laranja: "🍊",
     mamao: "🥭",
     doce: "🍬",
+    melao: "🍈",
   };
 
   private accompanimentEmoji: { [key: string]: string[] } = {
