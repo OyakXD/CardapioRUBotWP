@@ -52,7 +52,7 @@ export class EmojiParser {
   };
 
   private garnishEmojis: { [key: string]: string[] } = {
-    "🌽": ["cuscuz", "cuscuz de milho, farofa"],
+    "🌽": ["cuscuz", "cuscuz de milho"],
     "🍝": ["macarrao", "espaguete", "penne", "fusilli"],
     "🍛": ["pure", "pirao"],
   };
