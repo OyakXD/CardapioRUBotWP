@@ -61,7 +61,7 @@ export default class HttpConnection {
     try {
       const { data } = await axios.get(
         "https://wppconnect.io/whatsapp-versions/",
-        { timeout: 5_000 }
+        { timeout: 15_000 }
       );
 
       const $ = loadHTML(data);
