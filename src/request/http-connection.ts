@@ -54,7 +54,7 @@ export default class HttpConnection {
     defaultVersion: [number, number, number],
     retryCount: number = 3
   ): Promise<{ version: WAVersion; isLatest: boolean; error?: string }> {
-    let useVersion = {
+    let useVersion: { version: WAVersion; isLatest: boolean; error?: string } = {
       version: defaultVersion,
       isLatest: false,
     };
