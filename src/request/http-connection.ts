@@ -51,41 +51,46 @@ export default class HttpConnection {
   }
 
   public static async fetchLatestWhatsappVersion(
-    defaultVersion: [number, number, number]
+    defaultVersion: [number, number, number],
+    retryCount: number = 3
   ): Promise<{ version: WAVersion; isLatest: boolean; error?: string }> {
-    const useVersion = {
+    let useVersion = {
       version: defaultVersion,
       isLatest: false,
     };
 
-    try {
-      const { data } = await axios.get(
-        "https://wppconnect.io/whatsapp-versions/",
-        { timeout: 15_000 }
-      );
-
-      const $ = loadHTML(data);
-      const versionMatch = $("main .row h3")
-        .first()
-        .text()
-        .match(/(\d+\.\d+\.\d+)/);
-
-      if (versionMatch) {
-        const version = versionMatch[0].split(".").map(Number) as WAVersion;
-
-        return {
-          version: version,
-          isLatest: true,
+    while (retryCount-- > 0) {
+      try {
+        const { data } = await axios.get(
+          "https://wppconnect.io/whatsapp-versions/",
+          { timeout: 15_000 }
+        );
+  
+        const $ = loadHTML(data);
+        const versionMatch = $("main .row h3")
+          .first()
+          .text()
+          .match(/(\d+\.\d+\.\d+)/);
+  
+        if (versionMatch) {
+          const version = versionMatch[0].split(".").map(Number) as WAVersion;
+  
+          return {
+            version: version,
+            isLatest: true,
+          };
+        }
+  
+        return useVersion;
+      } catch (error: any) {
+        useVersion = {
+          ...useVersion,
+          error: error.message,
         };
       }
-
-      return useVersion;
-    } catch (error: any) {
-      return {
-        ...useVersion,
-        error: error.message,
-      };
     }
+
+    return useVersion;
   }
 }
 
