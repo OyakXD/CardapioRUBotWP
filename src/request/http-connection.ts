@@ -52,35 +52,36 @@ export default class HttpConnection {
 
   public static async fetchLatestWhatsappVersion(
     defaultVersion: [number, number, number],
-    retryCount: number = 3
+    retryCount: number = 5
   ): Promise<{ version: WAVersion; isLatest: boolean; error?: string }> {
-    let useVersion: { version: WAVersion; isLatest: boolean; error?: string } = {
-      version: defaultVersion,
-      isLatest: false,
-    };
+    let useVersion: { version: WAVersion; isLatest: boolean; error?: string } =
+      {
+        version: defaultVersion,
+        isLatest: false,
+      };
 
     while (retryCount-- > 0) {
       try {
         const { data } = await axios.get(
           "https://wppconnect.io/whatsapp-versions/",
-          { timeout: 15_000 }
+          { timeout: 30_000 }
         );
-  
+
         const $ = loadHTML(data);
         const versionMatch = $("main .row h3")
           .first()
           .text()
           .match(/(\d+\.\d+\.\d+)/);
-  
+
         if (versionMatch) {
           const version = versionMatch[0].split(".").map(Number) as WAVersion;
-  
+
           return {
             version: version,
             isLatest: true,
           };
         }
-  
+
         return useVersion;
       } catch (error: any) {
         useVersion = {
