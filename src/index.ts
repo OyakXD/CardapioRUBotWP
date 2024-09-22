@@ -31,7 +31,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
   private socketEvent: SocketEvent;
   private store?: ReturnType<typeof makeInMemoryStore>;
   private maxRetriesFailedMessage: number = 3;
-  private whatsappVersion: [number, number, number] = [2, 3000, 1015920675];
+  private whatsappVersion: [number, number, number] = [2, 3000, 1016700413];
   private msgRetryCounterCache: NodeCache = new NodeCache();
 
   constructor() {
@@ -96,10 +96,13 @@ export const WhatsappConnector = new (class WhatsappInstance {
       }
 
       this.whatsappVersion = version;
-      log.ok_(
-        `[SOCKET (INFO)] => Usando versão do WhatsApp Web: ${version.join(".")}`
-      );
     }
+
+    log.ok_(
+      `[SOCKET (INFO)] => Usando versão do WhatsApp Web: ${this.whatsappVersion.join(
+        "."
+      )}`
+    );
 
     const logger = Pino({
       level: "silent",
@@ -260,7 +263,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
    * Ative para evitar problemas de compatibilidade com o WhatsApp Web
    */
   public fetchWhatsappVersion() {
-    return true;
+    return false;
   }
 
   public getPrisma() {
