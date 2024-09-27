@@ -31,7 +31,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
   private socketEvent: SocketEvent;
   private store?: ReturnType<typeof makeInMemoryStore>;
   private maxRetriesFailedMessage: number = 3;
-  private whatsappVersion: [number, number, number] = [2, 3000, 1016700413];
+  private whatsappVersion: [number, number, number] = [2, 3000, 1016830464];
   private msgRetryCounterCache: NodeCache = new NodeCache();
 
   constructor() {
