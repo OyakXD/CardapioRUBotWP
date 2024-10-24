@@ -139,7 +139,7 @@ export class UserManager {
 
     const currentDay = Utils.getCurrentDate().getDay();
 
-    if (currentDay === 0 || currentDay === 4) {
+    if (currentDay === 0) {
       const receiveNotificationPrivate =
         this.canReceiveNotificationInPrivateChat();
       const users = await this.getUsers();
