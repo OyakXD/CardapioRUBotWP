@@ -19,7 +19,7 @@ export class UserManager {
     scheduleJob({ hour: 16, minute: 30, tz: "America/Fortaleza" }, () =>
       this.sendNotification("dinner")
     );
-    scheduleJob({ hour: 20, minute: 0, tz: "America/Fortaleza" }, () =>
+    scheduleJob({ hour: 20, minute: 10, tz: "America/Fortaleza" }, () =>
       this.rememberSchedule()
     );
   }
