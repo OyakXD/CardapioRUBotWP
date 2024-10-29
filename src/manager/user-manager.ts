@@ -19,7 +19,7 @@ export class UserManager {
     scheduleJob({ hour: 16, minute: 30, tz: "America/Fortaleza" }, () =>
       this.sendNotification("dinner")
     );
-    scheduleJob({ hour: 20, minute: 10, tz: "America/Fortaleza" }, () =>
+    scheduleJob({ hour: 20, minute: 0, tz: "America/Fortaleza" }, () =>
       this.rememberSchedule()
     );
   }
@@ -139,7 +139,7 @@ export class UserManager {
 
     const currentDay = Utils.getCurrentDate().getDay();
 
-    if (currentDay === 0 || currentDay == 2) {
+    if (currentDay === 0) {
       const receiveNotificationPrivate =
         this.canReceiveNotificationInPrivateChat();
       const users = await this.getUsers();
