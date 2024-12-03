@@ -33,7 +33,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
         error
       );
 
-      setTimeout(this.connectToWhatsapp, 1_000);
+      setTimeout(() => this.connectToWhatsapp(), 1_000);
     }
   }
 
@@ -57,6 +57,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
           '--disable-gpu',
           '--disable-extensions',
         ],
+        executablePath: process.env.CHROMIUM_PATH,
       },
     });
 
