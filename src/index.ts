@@ -29,11 +29,11 @@ export const WhatsappConnector = new (class WhatsappInstance {
       await this.initialize();
     } catch (error) {
       log.error_(
-        "[SOCKET (ERROR)] => Ocorreu um erro interno no bot. Reiniciando em 1s...",
+        "[SOCKET (ERROR)] => Ocorreu um erro interno no bot. Reiniciando em 5s...",
         error
       );
 
-      setTimeout(() => this.connectToWhatsapp(), 1_000);
+      setTimeout(() => this.connectToWhatsapp(), 5_000);
     }
   }
 
