@@ -37,6 +37,8 @@ export class HelpCommand extends SubCommand {
       messages.push(`- \`${commandTitle}\` ${command.getDescription()}!`);
     }
 
+    messages.push(``, `use /<comando> para utilizar o comando`);
+
     await message.reply(messages.join("\n").trim());
   }
 }

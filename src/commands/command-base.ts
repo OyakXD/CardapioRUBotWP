@@ -23,12 +23,12 @@ import log from "log-beautify";
 export const prefix = "!";
 
 export class CommandHandler {
-  private prefix: string;
+  private prefixList: string[];
   private spamCommand: Map<string, number> = new Map();
   public static commands: SubCommand[] = [];
 
-  constructor(prefix: string = this.prefix) {
-    this.prefix = prefix || "!";
+  constructor(prefix: string[] = this.prefixList) {
+    this.prefixList = prefix || ["!", "/"];
 
     CommandHandler.register(new HelpCommand());
     CommandHandler.register(new CardapioCommand());
@@ -68,8 +68,9 @@ export class CommandHandler {
   public async handle(message: Message) {
     const body = message.body;
 
-    if (body.startsWith(this.prefix)) {
-      const args = body.slice(this.prefix.length).trim().split(" ");
+    if (this.prefixList.some(prefix => body.startsWith(prefix))) {
+      const prefixUsed = this.prefixList.find(prefix => body.startsWith(prefix));
+      const args = body.slice(prefixUsed.length).trim().split(" ");
       const command = args.shift()?.toLowerCase().trim();
 
       if (command) {
