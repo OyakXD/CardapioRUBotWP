@@ -155,12 +155,12 @@ export class UserManager {
           await WhatsappConnector.socket.sendMessage(user.jid, messageMedia, {
             caption:
               "Lembre de agendar seu almoço e jantar! 😋\nhttps://si3.ufc.br/sigaa",
-            // ...(isGroup && {
-            //   mentions:
-            //     GroupManager.getGroupMetadata(user.jid)?.participants.map(
-            //       (member) => member.id
-            //     ) ?? [],
-            // })
+            ...(isGroup && {
+              mentions:
+                GroupManager.getGroupMetadata(user.jid)?.participants.map(
+                  (member) => member.id
+                ) ?? [],
+            })
           });
         }
       }
