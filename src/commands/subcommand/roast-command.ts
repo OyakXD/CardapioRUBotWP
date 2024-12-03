@@ -1,4 +1,5 @@
-import { ReplyMessageFunction, SubCommand } from "../sub-command";
+import { Message } from "whatsapp-web.js";
+import { SubCommand } from "../sub-command";
 import UsernameRegex from "github-username-regex-js";
 
 export class RoastCommand extends SubCommand {
@@ -19,7 +20,7 @@ export class RoastCommand extends SubCommand {
   }
 
   public async execute(
-    reply: ReplyMessageFunction,
+    message: Message,
     args: string[]
   ): Promise<any> {
     const username = args.join(" ");
@@ -35,23 +36,15 @@ export class RoastCommand extends SubCommand {
         const { roast } = await response.json();
 
         if (roast) {
-          return await reply({
-            text: roast,
-          });
+          return await message.reply(roast);
         }
       } else if (response.status === 500) {
-        return await reply({
-          text: "Ops! Parece que nossa torrefadora atingiu o limite. 😢",
-        });
+        return await message.reply("Ops! Parece que nossa torrefadora atingiu o limite. 😢");
       }
 
-      await reply({
-        text: "Ops! Parece que nossa torrefadora está em pausa para o café. Tente novamente mais tarde! 😢",
-      });
+      await message.reply("Ops! Parece que nossa torrefadora está em pausa para o café. Tente novamente mais tarde! 😢");
     } else {
-      await reply({
-        text: "Username inválido, por favor, insira um username válido. 😢",
-      });
+      await message.reply("Username inválido, por favor, insira um username válido. 😢");
     }
   }
 }

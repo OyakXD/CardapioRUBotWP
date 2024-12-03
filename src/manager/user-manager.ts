@@ -1,11 +1,10 @@
-import * as fs from "fs";
 import log from "log-beautify";
 import GroupManager from "./group/group-manager";
 import { scheduleJob } from "node-schedule";
 import { MenuParser } from "../parser/menu-parser";
-import { WhatsappConnector } from "..";
 import { User } from "@prisma/client";
-import { AnyMessageContent } from "baileys";
+import { WhatsappConnector } from "..";
+import { MessageMedia } from "whatsapp-web.js";
 import Utils from "../utils/utils";
 
 export class UserManager {
@@ -44,9 +43,7 @@ export class UserManager {
               this.isChatPrivate(user.jid)) ||
             !this.isChatPrivate(user.jid)
           ) {
-            await WhatsappConnector.sendMessage(user.jid, {
-              text: menu,
-            });
+            await WhatsappConnector.socket.sendMessage(user.jid, menu);
           }
         }
       }
@@ -125,7 +122,7 @@ export class UserManager {
   }
 
   public static isChatPrivate(userJid: string) {
-    return userJid.includes("@s.whatsapp.net")!;
+    return !userJid.includes("@g.us")!;
   }
 
   public static canReceiveNotificationInPrivateChat() {
@@ -144,14 +141,7 @@ export class UserManager {
         this.canReceiveNotificationInPrivateChat();
       const users = await this.getUsers();
 
-      const mediaMessage: AnyMessageContent = {
-        caption:
-          "Lembre de agendar seu almoço e jantar! 😋\nhttps://si3.ufc.br/sigaa",
-        image: fs.readFileSync("images/agendamento.jpg"),
-        width: 1080,
-        height: 1080,
-      };
-
+      const messageMedia = MessageMedia.fromFilePath("images/agendamento.jpg");
       UserManager.isSendingReminder = true;
 
       for (const user of users) {
@@ -162,14 +152,15 @@ export class UserManager {
         const isGroup = !this.isChatPrivate(user.jid);
 
         if ((receiveNotificationPrivate && !isGroup) || isGroup) {
-          await WhatsappConnector.sendMessage(user.jid, {
-            ...mediaMessage,
-            ...(isGroup && {
-              mentions:
-                GroupManager.getGroupMetadata(user.jid)?.participants.map(
-                  (member) => member.id
-                ) ?? [],
-            }),
+          await WhatsappConnector.socket.sendMessage(user.jid, messageMedia, {
+            caption:
+              "Lembre de agendar seu almoço e jantar! 😋\nhttps://si3.ufc.br/sigaa",
+            // ...(isGroup && {
+            //   mentions:
+            //     GroupManager.getGroupMetadata(user.jid)?.participants.map(
+            //       (member) => member.id
+            //     ) ?? [],
+            // })
           });
         }
       }

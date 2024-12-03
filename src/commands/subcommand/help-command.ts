@@ -1,5 +1,6 @@
+import { Message } from "whatsapp-web.js";
 import { CommandHandler } from "../command-base";
-import { ReplyMessageFunction, SubCommand } from "../sub-command";
+import { SubCommand } from "../sub-command";
 
 export class HelpCommand extends SubCommand {
   public hideCommandHelp(): boolean {
@@ -18,8 +19,8 @@ export class HelpCommand extends SubCommand {
     return "Veja os comandos disponíveis";
   }
 
-  public async execute(reply: ReplyMessageFunction): Promise<any> {
-    const message = [`*Comandos disponíveis:*`, ``];
+  public async execute(message: Message): Promise<any> {
+    const messages = [`*Comandos disponíveis:*`, ``];
     const commands = CommandHandler.getCommands();
 
     for (const command of commands) {
@@ -33,11 +34,9 @@ export class HelpCommand extends SubCommand {
       const commandTitle =
         `${command.getCommandName()} ${commandArguments}`.trim();
 
-      message.push(`- \`${commandTitle}\` ${command.getDescription()}!`);
+      messages.push(`- \`${commandTitle}\` ${command.getDescription()}!`);
     }
 
-    await reply({
-      text: message.join("\n").trim(),
-    });
+    await message.reply(messages.join("\n").trim());
   }
 }

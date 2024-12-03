@@ -1,5 +1,6 @@
+import { Message } from "whatsapp-web.js";
 import HttpConnection from "../../request/http-connection";
-import { ReplyMessageFunction, SubCommand } from "../sub-command";
+import { SubCommand } from "../sub-command";
 
 export class SigaaCommand extends SubCommand {
   public getCommandName(): string {
@@ -14,15 +15,11 @@ export class SigaaCommand extends SubCommand {
     return "Verifique se o SIGAA está online";
   }
 
-  public async execute(reply: ReplyMessageFunction): Promise<any> {
+  public async execute(message: Message): Promise<any> {
     if (await HttpConnection.sigaa()) {
-      await reply({
-        text: "SIGAA está online! ✅\nhttps://si3.ufc.br/sigaa",
-      });
+      await message.reply("SIGAA está online! ✅\nhttps://si3.ufc.br/sigaa");
     } else {
-      await reply({
-        text: "SIGAA está offline! 😓",
-      });
+      await message.reply("SIGAA está offline! 😓");
     }
   }
 }

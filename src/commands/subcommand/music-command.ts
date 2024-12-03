@@ -1,8 +1,8 @@
-import { proto } from "baileys";
-import { CommandData, ReplyMessageFunction, SubCommand } from "../sub-command";
+import { CommandData, SubCommand } from "../sub-command";
 import { YoutubeSearchResult } from "../../types/types";
 import Utils from "../../utils/utils";
 import DDown from "../../request/ddown";
+import { Message } from "whatsapp-web.js";
 
 export class MusicCommand extends SubCommand {
   private musicRunningCount = 0;
@@ -25,32 +25,26 @@ export class MusicCommand extends SubCommand {
   }
 
   public async execute(
-    reply: ReplyMessageFunction,
+    message: Message,
     args: string[],
     data: CommandData
   ): Promise<any> {
     const { chatPrivate } = data;
 
     if (!chatPrivate) {
-      return await reply({
-        text: "Esse comando só pode ser executado em uma conversa privada! 😅",
-      });
+      return await message.reply("Esse comando só pode ser executado em uma conversa privada! 😅");
     }
 
     const link = args.join(" ");
 
     if (!Utils.validateUrl(link)) {
-      return await reply({
-        text: "Link inválido! 😢",
-      });
+      return await message.reply("Link inválido! 😢");
     }
 
     let songsFound = 0;
 
     if (this.musicRunningCount >= this.maxMusicRunningCount) {
-      return await reply({
-        text: "Limite de download de músicas ao mesmo tempo atingido, aguarde a fila esvaziar! 😢",
-      });
+      return await message.reply("Limite de download de músicas ao mesmo tempo atingido, aguarde a fila esvaziar! 😢");
     }
     this.musicRunningCount++;
 
@@ -61,11 +55,7 @@ export class MusicCommand extends SubCommand {
       this.musicRunningCount--;
     };
 
-    const replyKey: proto.IMessageKey = (
-      await reply({
-        text: "Coletando informações do link aguarde...",
-      })
-    ).key;
+    const replyKey: Message = await message.reply("Coletando informações do link aguarde...");
 
     const metadata: YoutubeSearchResult[] = await DDown.search(
       link,
@@ -73,10 +63,7 @@ export class MusicCommand extends SubCommand {
         songsFound += data?.length ?? 0;
 
         if (replyKey) {
-          await reply({
-            text: `Músicas encontradas: ${songsFound}`,
-            edit: replyKey,
-          });
+          await message.edit(`Músicas encontradas: ${songsFound}`);
         }
       }
     );
@@ -85,16 +72,10 @@ export class MusicCommand extends SubCommand {
     if (!metadata || metadata.length === 0) {
       clearMusicTask();
 
-      return await reply({
-        text: "Erro ao coletar informações do link! 😢",
-        edit: replyKey,
-      });
+      return await message.edit("Erro ao coletar informações do link! 😢");
     }
 
-    await reply({
-      text: "Gerando dados da música, aguarde...",
-      edit: replyKey,
-    });
+    await message.edit("Gerando dados da música, aguarde...");
 
     const songs = metadata.filter((data) => data && data.success && data.song);
 
@@ -134,10 +115,7 @@ export class MusicCommand extends SubCommand {
         ];
       }
 
-      reply({
-        text: progressData.message.join("\n"),
-        edit: replyKey,
-      });
+      message.edit(progressData.message.join("\n"));
     }, 1_000);
 
     const response = (
@@ -183,31 +161,24 @@ export class MusicCommand extends SubCommand {
       const downloaded = response.length;
       const total = songs.length;
 
-      await reply({
-        text: [
-          `Músicas Geradas ${downloaded}/${total}! 🥳`,
-          ``,
-          ...response.map((data) => {
-            return [
-              `*Titulo*: \`${String(data.song.name).toLocaleUpperCase()}\``,
-              `*Artistas*: \`${
-                data.song.artists ? data.song.artists.join(", ") : "~"
-              }\``,
-              `*Melhor score*: ${data.song.bestScore || "N/A"}`,
-              `*Link para download*: ${data.download_url}`,
-              ``,
-            ].join("\n");
-          }),
-        ]
-          .join("\n")
-          .trim(),
-        edit: replyKey,
-      });
+      await message.edit([
+        `Músicas Geradas ${downloaded}/${total}! 🥳`,
+        ``,
+        ...response.map((data) => {
+          return [
+            `*Titulo*: \`${String(data.song.name).toLocaleUpperCase()}\``,
+            `*Artistas*: \`${data.song.artists ? data.song.artists.join(", ") : "~"
+            }\``,
+            `*Melhor score*: ${data.song.bestScore || "N/A"}`,
+            `*Link para download*: ${data.download_url}`,
+            ``,
+          ].join("\n");
+        }),
+      ]
+        .join("\n")
+        .trim());
     } else {
-      await reply({
-        text: "Erro ao gerar as músicas! 😢",
-        edit: replyKey,
-      });
+      await message.edit("Erro ao gerar as músicas! 😢");
     }
 
     clearMusicTask();

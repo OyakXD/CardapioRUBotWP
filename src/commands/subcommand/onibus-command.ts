@@ -1,5 +1,6 @@
+import { Message, MessageMedia } from "whatsapp-web.js";
 import { BusManager } from "../../manager/bus-manager";
-import { ReplyMessageFunction, SubCommand } from "../sub-command";
+import { SubCommand } from "../sub-command";
 import fs from "fs";
 
 export class OnibusCommand extends SubCommand {
@@ -15,7 +16,7 @@ export class OnibusCommand extends SubCommand {
     return "Veja os horários do ônibus";
   }
 
-  public async execute(reply: ReplyMessageFunction): Promise<any> {
+  public async execute(message: Message): Promise<any> {
     const {
       updatedText,
       stopsText,
@@ -36,10 +37,7 @@ export class OnibusCommand extends SubCommand {
       .map((stop, index) => `${index + 1}. ${stop}`)
       .join("\n");
 
-    await reply({
-      image: fs.readFileSync("images/bus.jpg"),
-      height: image.height ?? 2250,
-      width: image.width ?? 2250,
+    await message.reply(MessageMedia.fromFilePath("images/bus.jpg"), message.from, {
       caption:
         updatedText +
         "\n\n" +

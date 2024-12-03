@@ -1,4 +1,5 @@
-import { ReplyMessageFunction, SubCommand } from "../sub-command";
+import { Message } from "whatsapp-web.js";
+import { SubCommand } from "../sub-command";
 
 export class GithubCommand extends SubCommand {
   private thumbnailOfGithub: Buffer;
@@ -15,7 +16,7 @@ export class GithubCommand extends SubCommand {
     return "Para ver o repositorio do bot";
   }
 
-  public async execute(reply: ReplyMessageFunction): Promise<any> {
+  public async execute(message: Message): Promise<any> {
     if (!this.thumbnailOfGithub) {
       this.thumbnailOfGithub = Buffer.from(
         await (
@@ -24,16 +25,8 @@ export class GithubCommand extends SubCommand {
       );
     }
 
-    await reply({
-      text: "https://github.com/OyakXD/CardapioRUBotWP",
-      linkPreview: {
-        "matched-text": "https://github.com/OyakXD/CardapioRUBotWP",
-        "canonical-url": "https://github.com/OyakXD/CardapioRUBotWP",
-        description:
-          "Contribute to OyakXD/CardapioRUBotWP development by creating an account on GitHub.",
-        title: "GitHub - OyakXD/CardapioRUBotWP",
-        jpegThumbnail: this.thumbnailOfGithub,
-      },
+    await message.reply("https://github.com/OyakXD/CardapioRUBotWP", message.from, {
+      linkPreview: true,
     });
   }
 }

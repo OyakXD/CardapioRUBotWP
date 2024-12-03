@@ -1,5 +1,5 @@
-import { CommandData, ReplyMessageFunction, SubCommand } from "../sub-command";
-import fs from "fs";
+import { Message, MessageMedia } from "whatsapp-web.js";
+import { CommandData, SubCommand } from "../sub-command";
 
 export class ZureaCommand extends SubCommand {
   public hideCommandHelp(): boolean {
@@ -19,23 +19,17 @@ export class ZureaCommand extends SubCommand {
   }
 
   public async execute(
-    reply: ReplyMessageFunction,
+    message: Message,
     args: string[],
     data: CommandData
   ): Promise<any> {
-    const { remoteJid } = data;
 
-    if (remoteJid == "120363211196009871@g.us") {
-      await reply({
-        image: fs.readFileSync("images/mauricio.jpg"),
+    if (data.chatId == "120363211196009871@g.us") {
+      await message.reply(MessageMedia.fromFilePath("images/mauricio.jpg"), message.from, {
         caption: "😲",
-        width: 1220,
-        height: 608,
       });
     } else {
-      await reply({
-        text: "Esse comando não pode ser executado aqui! 😅",
-      });
+      await message.reply("Esse comando não pode ser executado aqui! 😅");
     }
   }
 }

@@ -1,5 +1,5 @@
-import { CommandData, ReplyMessageFunction, SubCommand } from "../sub-command";
-import fs from "fs";
+import { Message, MessageMedia } from "whatsapp-web.js";
+import { CommandData, SubCommand } from "../sub-command";
 
 export class XandaoCommand extends SubCommand {
   public hideCommandHelp(): boolean {
@@ -19,23 +19,16 @@ export class XandaoCommand extends SubCommand {
   }
 
   public async execute(
-    reply: ReplyMessageFunction,
+    message: Message,
     args: string[],
     data: CommandData
   ): Promise<any> {
-    const { remoteJid } = data;
-
-    if (remoteJid == "120363211196009871@g.us") {
-      await reply({
-        image: fs.readFileSync("images/xandao.jpg"),
+    if (data.chatId == "120363211196009871@g.us") {
+      await message.reply(MessageMedia.fromFilePath("images/xandao.jpg"), message.from, {
         caption: "Xandão é o cara! 😎",
-        width: 256,
-        height: 356,
       });
     } else {
-      await reply({
-        text: "Esse comando não pode ser executado aqui! 😅",
-      });
+      await message.reply("Esse comando não pode ser executado aqui! 😅");
     }
   }
 }

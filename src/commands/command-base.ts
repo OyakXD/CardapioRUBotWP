@@ -1,6 +1,4 @@
-import { AnyMessageContent, proto } from "baileys";
 import { UserManager } from "../manager/user-manager";
-import { WhatsappConnector } from "..";
 import { SubCommand } from "./sub-command";
 import { AmorCommand } from "./subcommand/amor-command";
 import { CardapioCommand } from "./subcommand/cardapio-command";
@@ -12,14 +10,15 @@ import { StopCommand } from "./subcommand/stop-command";
 import { GithubCommand } from "./subcommand/github-command";
 import { MusicCommand } from "./subcommand/music-command";
 import { RoastCommand } from "./subcommand/roast-command";
-import GroupManager from "../manager/group/group-manager";
-import log from "log-beautify";
 import { MoodleCommand } from "./subcommand/moodle-command";
 import { SigaaCommand } from "./subcommand/sigaa-command";
 import { SipacCommand } from "./subcommand/sipac-command";
 import { XandaoCommand } from "./subcommand/xandao-command";
 import { ZureaCommand } from "./subcommand/zurea-command";
 import { OnibusCommand } from "./subcommand/onibus-command";
+import { Message } from "whatsapp-web.js";
+import GroupManager from "../manager/group/group-manager";
+import log from "log-beautify";
 
 export const prefix = "!";
 
@@ -66,8 +65,8 @@ export class CommandHandler {
     return CommandHandler.commands;
   }
 
-  public async handle(messageInfo: proto.IWebMessageInfo) {
-    const body = this.extractMessageBody(messageInfo);
+  public async handle(message: Message) {
+    const body = message.body;
 
     if (body.startsWith(this.prefix)) {
       const args = body.slice(this.prefix.length).trim().split(" ");
@@ -81,50 +80,35 @@ export class CommandHandler {
         );
 
         if (subCommand) {
-          const reply = async (
-            message: AnyMessageContent,
-            quoted?: proto.IWebMessageInfo,
-            customJid?: string
-          ) => {
-            return await this.replyMessage(
-              remoteJid,
-              message,
-              messageInfo,
-              quoted,
-              customJid
-            );
-          };
+
+          const chatId = message.from;
+
+          const chatPrivate = UserManager.isChatPrivate(chatId);
+          const userId = chatPrivate ? chatId : message.author;
+          const userPhone = userId.split("@")[0];
           const spamIdentifier = [
+            userId,
             subCommand.getCommandName(),
             ...subCommand.getCommandLabels(),
           ].join(";");
 
-          const key = messageInfo.key!;
-          const remoteJid = key.remoteJid!;
-
-          const chatPrivate = UserManager.isChatPrivate(remoteJid);
-          const userJid = chatPrivate ? remoteJid : key.participant!;
-          const userPhone = userJid.split("@")[0];
-
           log.info_(`[SOCKET (INFO)] => ${userPhone} => !${command}`);
 
-          if (this.spam(remoteJid, spamIdentifier)) {
-            return await reply({
-              text: "Você está executando muito este comando! por favor, aguarde! 😅",
-            });
+          if (this.spam(chatId, spamIdentifier)) {
+            return await message.reply("Você está executando muito este comando! por favor, aguarde! 😅");
           }
 
-          const participantID = key.participant!;
+          const participantID = message.author;
           const groupParticipants =
-            GroupManager.getGroupMetadata(remoteJid)?.participants;
+            GroupManager.getGroupMetadata(chatId)?.participants;
           const groupParticipant = groupParticipants?.filter(
             (participant) => participant.id === participantID
           )[0];
 
-          await subCommand.execute(reply, args, {
-            userJid,
+          await subCommand.execute(message, args, {
+            userId,
             userPhone,
-            remoteJid,
+            chatId,
             chatPrivate,
             isGroup: !chatPrivate,
             participantID,
@@ -132,27 +116,6 @@ export class CommandHandler {
           });
         }
       }
-    }
-  }
-
-  public async replyMessage(
-    remoteJid: string,
-    message: AnyMessageContent,
-    messageInfo: proto.IWebMessageInfo,
-    quoted?: proto.IWebMessageInfo,
-    customJid?: string
-  ): Promise<proto.WebMessageInfo | null> {
-    try {
-      return await WhatsappConnector.sendMessage(
-        customJid ? customJid : remoteJid,
-        message,
-        {
-          quoted: quoted ? quoted : messageInfo,
-        }
-      );
-    } catch (error) {
-      log.error_(`Error sending message:`, error);
-      return null;
     }
   }
 
@@ -176,13 +139,5 @@ export class CommandHandler {
 
     setTimeout(() => this.spamCommand.delete(spamKey), delay);
     return false;
-  }
-
-  public extractMessageBody({ message }: proto.IWebMessageInfo): string {
-    if (message.ephemeralMessage) {
-      message = message.ephemeralMessage.message!;
-    }
-
-    return message.extendedTextMessage?.text || message.conversation || "";
   }
 }

@@ -1,21 +1,13 @@
-import { AnyMessageContent, GroupParticipant, proto } from "baileys";
-
-export interface ReplyMessageFunction {
-  (
-    message: AnyMessageContent,
-    quoted?: proto.IWebMessageInfo,
-    customJid?: string
-  ): Promise<proto.WebMessageInfo>;
-}
+import { Message } from "whatsapp-web.js";
 
 export interface CommandData {
-  userJid: string;
+  userId: string;
   userPhone: string;
-  remoteJid: string;
+  chatId: string;
   chatPrivate: boolean;
   isGroup: boolean;
   participantID?: string;
-  groupParticipant?: GroupParticipant;
+  groupParticipant?: any;
 }
 
 export interface SubCommandInterface {
@@ -25,7 +17,7 @@ export interface SubCommandInterface {
   getArguments(): string[];
   getDescription(): string;
   execute(
-    reply: ReplyMessageFunction,
+    reply: Message,
     args: string[],
     data: CommandData
   ): Promise<any>;
@@ -53,7 +45,7 @@ export class SubCommand implements SubCommandInterface {
   }
 
   public async execute(
-    reply: ReplyMessageFunction,
+    message: Message,
     args: string[],
     data: CommandData
   ): Promise<any> {

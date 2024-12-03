@@ -1,4 +1,5 @@
-import { ReplyMessageFunction, SubCommand } from "../sub-command";
+import { Message } from "whatsapp-web.js";
+import { SubCommand } from "../sub-command";
 
 export class AmorCommand extends SubCommand {
   public hideCommandHelp(): boolean {
@@ -17,9 +18,7 @@ export class AmorCommand extends SubCommand {
     return "Mostre sua carência";
   }
 
-  public async execute(reply: ReplyMessageFunction): Promise<any> {
-    await reply({
-      text: "Você é muito especial para mim! ❤️",
-    });
+  public async execute(message: Message): Promise<any> {
+    await message.reply("Você é muito especial para mim! ❤️");
   }
 }

@@ -1,4 +1,5 @@
-import { CommandData, ReplyMessageFunction, SubCommand } from "../sub-command";
+import { Message } from "whatsapp-web.js";
+import { CommandData, SubCommand } from "../sub-command";
 
 export class DebugCommand extends SubCommand {
   public hideCommandHelp(): boolean {
@@ -18,12 +19,10 @@ export class DebugCommand extends SubCommand {
   }
 
   public async execute(
-    reply: ReplyMessageFunction,
+    message: Message,
     args: string[],
     data: CommandData
   ): Promise<any> {
-    await reply({
-      text: JSON.stringify(data, null, 2),
-    });
+    await message.reply(JSON.stringify(data, null, 2));
   }
 }

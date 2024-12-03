@@ -1,5 +1,6 @@
+import { Message } from "whatsapp-web.js";
 import HttpConnection from "../../request/http-connection";
-import { ReplyMessageFunction, SubCommand } from "../sub-command";
+import { SubCommand } from "../sub-command";
 
 export class MoodleCommand extends SubCommand {
   public getCommandName(): string {
@@ -14,15 +15,11 @@ export class MoodleCommand extends SubCommand {
     return "Verifique se o MOODLE está online";
   }
 
-  public async execute(reply: ReplyMessageFunction): Promise<any> {
+  public async execute(message: Message): Promise<any> {
     if (await HttpConnection.moodle()) {
-      await reply({
-        text: "Moodle está online! ✅\nhttps://moodle2.quixada.ufc.br",
-      });
+      await message.reply("Moodle está online! ✅\nhttps://moodle2.quixada.ufc.br");
     } else {
-      await reply({
-        text: "Moodle está offline! 😓",
-      });
+      await message.reply("Moodle está offline! 😓");
     }
   }
 }
