@@ -55,16 +55,14 @@ export class MusicCommand extends SubCommand {
       this.musicRunningCount--;
     };
 
-    const replyKey: Message = await message.reply("Coletando informações do link aguarde...");
+    const replyMessage: Message = await message.reply("Coletando informações do link aguarde...");
 
     const metadata: YoutubeSearchResult[] = await DDown.search(
       link,
       async (data: YoutubeSearchResult[]) => {
         songsFound += data?.length ?? 0;
 
-        if (replyKey) {
-          await message.edit(`Músicas encontradas: ${songsFound}`);
-        }
+        await replyMessage.edit(`Músicas encontradas: ${songsFound}`);
       }
     );
 
@@ -72,10 +70,10 @@ export class MusicCommand extends SubCommand {
     if (!metadata || metadata.length === 0) {
       clearMusicTask();
 
-      return await message.edit("Erro ao coletar informações do link! 😢");
+      return await replyMessage.edit("Erro ao coletar informações do link! 😢");
     }
 
-    await message.edit("Gerando dados da música, aguarde...");
+    await replyMessage.edit("Gerando dados da música, aguarde...");
 
     const songs = metadata.filter((data) => data && data.success && data.song);
 
@@ -115,7 +113,7 @@ export class MusicCommand extends SubCommand {
         ];
       }
 
-      message.edit(progressData.message.join("\n"));
+      replyMessage.edit(progressData.message.join("\n"));
     }, 1_000);
 
     const response = (
@@ -161,7 +159,7 @@ export class MusicCommand extends SubCommand {
       const downloaded = response.length;
       const total = songs.length;
 
-      await message.edit([
+      await replyMessage.edit([
         `Músicas Geradas ${downloaded}/${total}! 🥳`,
         ``,
         ...response.map((data) => {
@@ -178,7 +176,7 @@ export class MusicCommand extends SubCommand {
         .join("\n")
         .trim());
     } else {
-      await message.edit("Erro ao gerar as músicas! 😢");
+      await replyMessage.edit("Erro ao gerar as músicas! 😢");
     }
 
     clearMusicTask();
