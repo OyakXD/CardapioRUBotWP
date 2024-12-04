@@ -117,6 +117,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
       try {
         return await oldSendMessage.call(this.socket, chatId, content, options);
       } catch (error) {
+        log.info_(`[SOCKET (INFO)] => Mensagem ignorada para o chat: ${chatId}!`);
         return null;
       }
     }
