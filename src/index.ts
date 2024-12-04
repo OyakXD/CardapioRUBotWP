@@ -3,7 +3,7 @@ import { MenuManager } from "./manager/menu-manager";
 import { UserManager } from "./manager/user-manager";
 import { PrismaClient } from "@prisma/client";
 import { BusManager } from "./manager/bus-manager";
-import { LocalAuth, Client as WASocket } from "whatsapp-web.js";
+import { LocalAuth, Message, MessageContent, MessageSendOptions, Client as WASocket } from "whatsapp-web.js";
 import log from "log-beautify";
 import QRCode from "qrcode-terminal";
 import GroupManager from "./manager/group/group-manager";
@@ -110,6 +110,16 @@ export const WhatsappConnector = new (class WhatsappInstance {
     this.socket.on("message", async (message) => {
       this.commandHandler.handle(message);
     });
+
+    const oldSendMessage = this.socket.sendMessage;
+
+    this.socket.sendMessage = async (chatId: string, content: MessageContent, options?: MessageSendOptions): Promise<Message | null> => {
+      try {
+        return await oldSendMessage.call(this.socket, chatId, content, options);
+      } catch (error) {
+        return null;
+      }
+    }
 
     log.ok_(`[SOCKET (INFO)] => Validando conexão aguarde...`);
     await this.socket.initialize();
