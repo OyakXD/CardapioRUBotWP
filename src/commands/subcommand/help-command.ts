@@ -1,6 +1,7 @@
 import { Message } from "whatsapp-web.js";
 import { CommandHandler } from "../command-base";
 import { SubCommand } from "../sub-command";
+import safeExecute from "../../utils/safe-execute";
 
 export class HelpCommand extends SubCommand {
   public hideCommandHelp(): boolean {
@@ -39,6 +40,6 @@ export class HelpCommand extends SubCommand {
 
     messages.push(``, `use /<comando> para utilizar o comando`);
 
-    await message.reply(messages.join("\n").trim());
+    safeExecute(async () => await message.reply(messages.join("\n").trim()));
   }
 }
