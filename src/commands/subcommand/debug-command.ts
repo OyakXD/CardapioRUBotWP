@@ -23,6 +23,6 @@ export class DebugCommand extends SubCommand {
     args: string[],
     data: CommandData
   ): Promise<any> {
-    await message.reply(JSON.stringify(data, null, 2));
+    await message.reply(JSON.stringify(message, null, 2));
   }
 }
