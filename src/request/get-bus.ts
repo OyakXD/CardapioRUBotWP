@@ -32,15 +32,14 @@ export class RequestBus {
         .get()
         .join("\n");
 
-      const returnStopsDetails = $(
-        'span:contains("ALTERAÇÃO NO PONTO DE EMBARQUE")'
-      )
-        .parent()
-        .parent()
-        .nextAll("li")
-        .map((i, el) => $(el).text().trim())
-        .get()
-        .join("\n");
+        const returnStopsDetails = $('span:contains("Rota de retorno")')
+          .parent()
+          .parent()
+          .next("ol")
+          .children("li")
+          .map((i, el) => $(el).text().trim())
+          .get()
+          .join("\n");
 
       const imageUrl = $("img.wp-image-23084").attr("src").trim();
       const imageWith = Number(
