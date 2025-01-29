@@ -82,6 +82,8 @@ export const WhatsappConnector = new (class WhatsappInstance {
     });
 
     this.socket.on("ready", async () => {
+      await this.socket.sendPresenceUnavailable();
+      
       log.ok_(`[SOCKET (INFO)] => Carregando informações dos grupos...`);
 
       GroupManager.loadGroupsMetadata(this.socket).then(() => {
