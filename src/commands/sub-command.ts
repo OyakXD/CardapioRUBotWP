@@ -1,4 +1,5 @@
 import { Message } from "whatsapp-web.js";
+import { ParticipantMetadata } from "../manager/group/group-manager";
 
 export interface CommandData {
   userId: string;
@@ -8,6 +9,7 @@ export interface CommandData {
   isGroup: boolean;
   participantID?: string;
   groupParticipant?: any;
+  groupParticipants?: ParticipantMetadata[];
 }
 
 export interface SubCommandInterface {

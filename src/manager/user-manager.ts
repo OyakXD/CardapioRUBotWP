@@ -2,7 +2,7 @@ import log from "log-beautify";
 import GroupManager from "./group/group-manager";
 import { scheduleJob } from "node-schedule";
 import { MenuParser } from "../parser/menu-parser";
-import { User } from "@prisma/client";
+import { User, Notification } from "@prisma/client";
 import { WhatsappConnector } from "..";
 import { MessageMedia } from "whatsapp-web.js";
 import Utils from "../utils/utils";
@@ -29,21 +29,21 @@ export class UserManager {
     }
 
     if (Utils.isMiddleWeek()) {
-      const [menu, users] = await Promise.all([
+      const [menu, chatsNotifications] = await Promise.all([
         MenuParser.mountMenu(type),
-        this.getUsers(),
+        this.getChatsNotifications(),
       ]);
 
       UserManager.isSendingMenu = true;
 
-      for (const user of users) {
-        if (await this.canReceiveNotification(user)) {
+      for (const chatNotification of chatsNotifications) {
+        if (chatNotification.enabled) {
           if (
             (this.canReceiveNotificationInPrivateChat() &&
-              this.isChatPrivate(user.jid)) ||
-            !this.isChatPrivate(user.jid)
+              this.isChatPrivate(chatNotification.chatJid)) ||
+            !this.isChatPrivate(chatNotification.chatJid)
           ) {
-            await WhatsappConnector.socket.sendMessage(user.jid, menu);
+            await WhatsappConnector.socket.sendMessage(chatNotification.chatJid, menu);
           }
         }
       }
@@ -53,40 +53,44 @@ export class UserManager {
   }
 
   public static async canReceiveNotification(
-    userJid: string | User
+    chatJid: string
   ): Promise<boolean> {
     try {
-      return (await this.getUser(userJid))?.notification ?? false;
+      const notification = await WhatsappConnector.getPrisma().notification.findUnique({
+        where: {
+          chatJid: chatJid,
+        },
+      });
+      
+      return notification?.enabled ?? false;
     } catch (error) {
       return false;
     }
   }
 
-  public static async removeReceiveNotification(userJid: string | User) {
-    return await this.updateUserNotification(userJid, false);
+  public static async removeReceiveNotification(chatJid: string) {
+    return await this.updateChatNotification(chatJid, false);
   }
 
-  public static async addReceiveNotification(userJid: string | User) {
-    return await this.updateUserNotification(userJid, true);
+  public static async addReceiveNotification(chatJid: string) {
+    return await this.updateChatNotification(chatJid, true);
   }
 
-  public static async updateUserNotification(
-    userJid: string | User,
+  public static async updateChatNotification(
+    chatJid: string,
     value: boolean
   ) {
     try {
-      userJid = typeof userJid !== "string" ? userJid.jid : userJid;
-
-      await WhatsappConnector.getPrisma().user.upsert({
+      await WhatsappConnector.getPrisma().notification.upsert({
         where: {
-          jid: userJid,
+          chatJid: chatJid,
         },
         update: {
-          notification: value,
+          enabled: value,
         },
         create: {
-          jid: userJid,
-          notification: value,
+          chatJid: chatJid,
+          enabled: value,
         },
       });
       return true;
@@ -104,15 +108,28 @@ export class UserManager {
     }
   }
 
-  public static async getUser(userJid: string | User): Promise<User | null> {
+  public static async getChatsNotifications(): Promise<Notification[]> {
     try {
-      if (typeof userJid !== "string") {
-        return userJid;
+      return await WhatsappConnector.getPrisma().notification.findMany({
+        where: {
+          enabled: true,
+        },
+      });
+    } catch (error) {
+      log.error_("Erro ao carregar as notificações", error);
+      return [];
+    }
+  }
+
+  public static async getUser(phone: string | User): Promise<User | null> {
+    try {
+      if (typeof phone !== "string") {
+        return phone;
       }
 
       return await WhatsappConnector.getPrisma().user.findUnique({
         where: {
-          jid: userJid,
+          phone: phone,
         },
       });
     } catch (error) {
@@ -125,8 +142,24 @@ export class UserManager {
     return !userJid.includes("@g.us")!;
   }
 
+  public static convertPhoneToJid(phone: string) {
+    if (phone.endsWith('@s.whatsapp.net')) {
+      return phone;
+    }
+
+    if (phone.endsWith('@c.us')) {
+      return phone.replace('c.us', 's.whatsapp.net');
+    }
+    
+    return `${phone}@s.whatsapp.net`;
+  }
+
+  public static convertJidToPhone(jid: string) {
+    return jid.split("@")[0] ?? jid;
+  }
+
   public static canReceiveNotificationInPrivateChat() {
-    return true;
+    return false;
   }
 
   public static async rememberSchedule() {
@@ -139,25 +172,21 @@ export class UserManager {
     if (currentDay === 0) {
       const receiveNotificationPrivate =
         this.canReceiveNotificationInPrivateChat();
-      const users = await this.getUsers();
+      const chatsNotifications = await this.getChatsNotifications();
 
       const messageMedia = MessageMedia.fromFilePath("images/agendamento.jpg");
       UserManager.isSendingReminder = true;
 
-      for (const user of users) {
-        if (!(await this.canReceiveNotification(user))) {
-          continue;
-        }
-
-        const isGroup = !this.isChatPrivate(user.jid);
+      for (const chatNotification of chatsNotifications) {
+        const isGroup = !this.isChatPrivate(chatNotification.chatJid);
 
         if ((receiveNotificationPrivate && !isGroup) || isGroup) {
-          await WhatsappConnector.socket.sendMessage(user.jid, messageMedia, {
+          await WhatsappConnector.socket.sendMessage(chatNotification.chatJid, messageMedia, {
             caption:
               "Lembre de agendar seu almoço e jantar! 😋\nhttps://si3.ufc.br/sigaa",
             ...(isGroup && {
               mentions:
-                GroupManager.getGroupMetadata(user.jid)?.participants.map(
+                GroupManager.getGroupMetadata(chatNotification.chatJid)?.participants.map(
                   (member) => member.id
                 ) ?? [],
             })

@@ -8,8 +8,31 @@ generator client {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  jid          String   @unique
-  notification Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  id           Int           @id @default(autoincrement())
+  phone        String        @unique
+  createdAt    DateTime      @default(now())
+  queries      Int           @default(0)
+  achievements Achievement[]
+  checkIns     CheckIn[]
+}
+
+model Notification {
+  id      Int     @id @default(autoincrement())
+  chatJid String  @unique
+  enabled Boolean @default(false)
+}
+
+model Achievement {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  name       String
+  unlockedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model CheckIn {
+  id     Int      @id @default(autoincrement())
+  userId Int
+  date   DateTime
+  user   User     @relation(fields: [userId], references: [id])
 }

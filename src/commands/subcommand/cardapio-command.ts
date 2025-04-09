@@ -1,8 +1,8 @@
 import { Message } from "whatsapp-web.js";
 import { MenuManager } from "../../manager/menu-manager";
 import { MenuParser } from "../../parser/menu-parser";
-import { SubCommand } from "../sub-command";
-import { getOrCreateUsuario,  registrarConsulta} from "../../core/conquistas";
+import { CommandData, SubCommand } from "../sub-command";
+import { UserAchievement } from "../../user/user-achievement";
 
 export class CardapioCommand extends SubCommand {
   public getCommandName(): string {
@@ -17,13 +17,13 @@ export class CardapioCommand extends SubCommand {
     return "Veja o cardápio do dia";
   }
 
-  public async execute(message: Message): Promise<any> {
-    const contato = await message.getContact();
-    const nome = contato.pushname || contato.name || "Usuário";
-    const id = message.from;
+  public async execute(
+    message: Message,
+    args: string[],
+    data: CommandData
+  ): Promise<any> {
 
-    const usuario = getOrCreateUsuario(id, nome);
-    registrarConsulta(usuario);
+    UserAchievement.update(data.userId, message);
 
     const { lunch, dinner, date } = await MenuManager.getMenu();
 

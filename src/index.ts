@@ -7,7 +7,6 @@ import { LocalAuth, Message, MessageContent, MessageSendOptions, Client as WASoc
 import log from "log-beautify";
 import QRCode from "qrcode-terminal";
 import GroupManager from "./manager/group/group-manager";
-import { carregarUsuarios } from "./core/conquistas";
 
 export const WhatsappConnector = new (class WhatsappInstance {
   public commandHandler: CommandHandler;
@@ -17,9 +16,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
   constructor() {
     this.commandHandler = new CommandHandler();
     this.prisma = new PrismaClient();
-
-    carregarUsuarios();
-
+    
     Promise.all([
       MenuManager.initialize(),
       BusManager.initialize(),
@@ -112,7 +109,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
       this.connectToWhatsapp();
     });
 
-    this.socket.on("message", async (message) => {
+    this.socket.on("message_create", async (message) => {
       this.commandHandler.handle(message);
     });
 

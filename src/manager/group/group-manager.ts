@@ -1,12 +1,12 @@
 import { GroupChat, Client as WASocket } from "whatsapp-web.js";
 
-interface ParticipantMetadata {
+export interface ParticipantMetadata {
   id: string;
   isAdmin: boolean;
   isSuperAdmin: boolean;
 }
 
-interface GroupMetadata {
+export interface GroupMetadata {
   id: string;
   name: string;
   participants: ParticipantMetadata[];
