@@ -19,6 +19,9 @@ import { OnibusCommand } from "./subcommand/onibus-command";
 import { Message } from "whatsapp-web.js";
 import GroupManager from "../manager/group/group-manager";
 import log from "log-beautify";
+import { ConquistaCommand } from "./subcommand/conquista-command";
+import { RankingCommand } from "./subcommand/ranking-command";
+import { TabelaConquista } from "./subcommand/tabela-conquista";
 
 export const prefix = "!";
 
@@ -46,6 +49,9 @@ export class CommandHandler {
     CommandHandler.register(new AmorCommand());
     CommandHandler.register(new DebugCommand());
     CommandHandler.register(new OnibusCommand());
+    CommandHandler.register(new ConquistaCommand());
+    CommandHandler.register(new RankingCommand());
+    CommandHandler.register(new TabelaConquista());
   }
 
   public static register(command: SubCommand) {

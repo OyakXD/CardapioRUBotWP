@@ -5,6 +5,7 @@ wa_session/
 models/
 build/
 bin/*
+db/
 .env
 yarn.lock
 package-lock.json
