@@ -2,6 +2,7 @@ import { WhatsappConnector } from "..";
 import { Message } from "whatsapp-web.js";
 import { AchievementInfo, ACHIEVEMENTS } from "./types";
 import { UserManager } from "../manager/user-manager";
+import Utils from "../utils/utils";
 
 export class UserAchievement {
 
@@ -13,7 +14,7 @@ export class UserAchievement {
 
     userPhone = UserManager.convertJidToPhone(userPhone);
 
-    const today = new Date().setHours(0, 0, 0, 0);
+    const today = Utils.getBrazilToday();
     const cacheKey = `${userPhone}-${today}`;
 
     if (this.checkInCache.has(cacheKey)) {
@@ -53,7 +54,7 @@ export class UserAchievement {
       await Promise.all([
         tx.checkIn.create({
           data: {
-            date: new Date(),
+            date: new Date(today),
             userId
           }
         }),

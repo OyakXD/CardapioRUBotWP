@@ -73,6 +73,9 @@ export class CommandHandler {
 
   public async handle(message: Message) {
     const body = message.body;
+    const chatId = message.from;
+
+    const chatPrivate = UserManager.isChatPrivate(chatId);
 
     if (this.prefixList.some(prefix => body.startsWith(prefix))) {
       const prefixUsed = this.prefixList.find(prefix => body.startsWith(prefix));
@@ -88,9 +91,6 @@ export class CommandHandler {
 
         if (subCommand) {
 
-          const chatId = message.from;
-
-          const chatPrivate = UserManager.isChatPrivate(chatId);
           const userId = chatPrivate ? chatId : message.author;
           const userPhone = userId.split("@")[0];
           const spamIdentifier = [
@@ -124,6 +124,8 @@ export class CommandHandler {
           });
         }
       }
+    } else {
+
     }
   }
 
