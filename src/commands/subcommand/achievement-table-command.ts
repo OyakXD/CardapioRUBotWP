@@ -17,10 +17,12 @@ export class AchievementTableCommand extends SubCommand {
   }
 
   public async execute(message: Message): Promise<any> {
-      let resposta = "📊 Tabela de Conquistas:\n\n"    
-  
+      let resposta = "📊 Tabela de Conquistas:\n\n"
+    
       for (const achievement of ACHIEVEMENTS){
+        if(achievement.requiredDays < 9999){
         resposta += `- ${achievement.displayName} — ${achievement.requiredDays} Pontos(dias)\n`;
+        }
       }
   
       await message.reply(resposta.trim());

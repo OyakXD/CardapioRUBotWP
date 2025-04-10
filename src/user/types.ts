@@ -9,7 +9,8 @@ export type AchievementName =
     | "senior"
     | "senior_avancado"
     | "master"
-    | "lendario";
+    | "lendario"
+    | "amigo_ancioes";
 
 export const DEFAULT_ACHIEVEMENT: AchievementName = "calouro";
 
@@ -17,6 +18,7 @@ export interface AchievementInfo {
     name: AchievementName;
     displayName: string;
     requiredDays: number;
+    unique?: boolean
 }
 
 export const ACHIEVEMENTS: AchievementInfo[] = [
@@ -30,5 +32,6 @@ export const ACHIEVEMENTS: AchievementInfo[] = [
     { name: "senior", displayName: "Senior do RU 🏅", requiredDays: 45 },
     { name: "senior_avancado", displayName: "Senior Avançado do RU 🏆", requiredDays: 50 },
     { name: "master", displayName: "Master 💀", requiredDays: 60 },
-    { name: "lendario", displayName: "Legendary 🔥", requiredDays: 90 }
+    { name: "lendario", displayName: "Legendary 🔥", requiredDays: 90 },
+    {name: "amigo_ancioes", displayName: "Amigo dos Anciões 🧙‍♂️", requiredDays: 9999, unique: true}
 ];
