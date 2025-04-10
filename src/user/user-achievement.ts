@@ -91,7 +91,7 @@ export class UserAchievement {
 
     const unlocked = new Set(achievements.map(a => a.name));
     const toUnlock = ACHIEVEMENTS.filter(a =>
-      a.requiredDays > 0 && distinctDays >= a.requiredDays && !unlocked.has(a.name)
+      !a.isReward && a.requiredDays > 0 && distinctDays >= a.requiredDays && !unlocked.has(a.name)
     );
 
     if (toUnlock.length > 0) {
@@ -220,17 +220,18 @@ export class UserAchievement {
         response += `- 😕 Nenhuma titulo conquistado até o momento.\n`;
       } else {
         for (const conquest of conquered) {
-          response += `- ${conquest.displayName} (${conquest.requiredDays} dias)\n`;
+          const description = conquest.isReward ? `Desbloqueado` : `${conquest.requiredDays} dias`;
+          response += `- ${conquest.displayName} (${description})\n`;
         }
       }
 
       const highConqueredDays = conquered.length > 0
-        ? Math.max(...conquered.map(c => c.requiredDays))
+        ? Math.max(...conquered.map(c => !c.isReward && c.requiredDays))
         : 0;
 
       let next = ACHIEVEMENTS.find(a =>
         !user.achievements.some(ua => ua.name === a.name) &&
-        a.requiredDays > highConqueredDays
+        !a.isReward && a.requiredDays > highConqueredDays
       );
 
       if (next) {
