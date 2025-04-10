@@ -170,7 +170,7 @@ export class UserAchievement {
 
       if (ranking.length > 3) {
         response += `\nOutros participantes:\n`;
-        ranking.slice(3, 7).forEach((entry, index) => {
+        ranking.slice(3, 10).forEach((entry, index) => {
           response += `${index + 4}. @${entry.phone} | ${entry.days} dias\n`;
           mentions.push(UserManager.convertPhoneToJid(entry.phone));
         });
