@@ -24,12 +24,12 @@ export class AchievementsCommand extends SubCommand {
     data: CommandData
   ): Promise<any> {
     try {
-      const mentionedUser = args.find(arg => arg.startsWith('@'));
+      const mentionedUser = args.join(" ").trim();
       
       let targetUserId = data.userId;
 
       if (mentionedUser) {
-        let mentionedNumber = mentionedUser.replace('@', '').replace(/\D/g, '');
+        let mentionedNumber = mentionedUser.replace(/\D/g, '');
 
         if (mentionedNumber.startsWith('55')) {
           mentionedNumber = mentionedNumber.substring(2);
@@ -43,9 +43,9 @@ export class AchievementsCommand extends SubCommand {
           return await message.reply("❌ Número mencionado inválido.");
         }
         
-        const mentionedUserData = await WhatsappConnector.getPrisma().user.findUnique({
-          where: { phone: mentionedNumber }
-        });
+        mentionedNumber = `55${mentionedNumber}`;
+        
+        const mentionedUserData = UserManager.getUser(mentionedNumber);
 
         if (mentionedUserData) {
           targetUserId = UserManager.convertPhoneToJid(mentionedNumber);

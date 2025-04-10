@@ -35,4 +35,6 @@ model CheckIn {
   userId Int
   date   DateTime
   user   User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }

@@ -20,7 +20,7 @@ export class AchievementTableCommand extends SubCommand {
       let resposta = "📊 Tabela de Conquistas:\n\n"    
   
       for (const achievement of ACHIEVEMENTS){
-        resposta += `- ${achievement.displayName} — ${achievement.requiredDays} Pontuação\n`;
+        resposta += `- ${achievement.displayName} — ${achievement.requiredDays} Pontos(dias)\n`;
       }
   
       await message.reply(resposta.trim());

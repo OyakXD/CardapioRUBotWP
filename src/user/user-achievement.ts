@@ -89,7 +89,7 @@ export class UserAchievement {
     ).size;
 
     const unlocked = new Set(achievements.map(a => a.name));
-    const toUnlock = ACHIEVEMENTS.filter(a => 
+    const toUnlock = ACHIEVEMENTS.filter(a =>
       distinctDays >= a.requiredDays && !unlocked.has(a.name)
     );
 
@@ -113,7 +113,7 @@ export class UserAchievement {
     message: Message
   ): Promise<void> {
     try {
-      const messages = achievements.map(a => 
+      const messages = achievements.map(a =>
         `Parabéns! Você desbloqueou a conquista: ${a.displayName}.`
       );
       await message.reply(messages.join('\n'));
@@ -164,15 +164,19 @@ export class UserAchievement {
         const medalha = index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉";
 
         mentions.push(UserManager.convertPhoneToJid(entry.phone));
-        response += `${medalha} @${entry.phone} - ${entry.days} dias\n`;
+        response += `${medalha} @${entry.phone} | ${entry.days} dias\n`;
       });
 
       if (ranking.length > 3) {
         response += `\nOutros participantes:\n`;
-        ranking.slice(3).forEach((entry, index) => {
-          response += `${index + 4}. @${entry.phone} - ${entry.days} dias\n`;
+        ranking.slice(3, 13).forEach((entry, index) => {
+          response += `${index + 4}. @${entry.phone} | ${entry.days} dias\n`;
           mentions.push(UserManager.convertPhoneToJid(entry.phone));
         });
+
+        if (ranking.length > 13) {
+          response += `\n...e mais ${ranking.length - 13} outros participantes.`;
+        }
       }
 
       return { message: response.trim(), mentions };
@@ -183,7 +187,7 @@ export class UserAchievement {
   }
 
   public static async showAchievement(userPhone: string): Promise<{ message: string, mentions: string[] }> {
-    
+
     userPhone = UserManager.convertJidToPhone(userPhone);
 
     try {
@@ -218,13 +222,18 @@ export class UserAchievement {
         }
       }
 
-      const next = ACHIEVEMENTS.find(
-        a => !user.achievements.some(ua => ua.name === a.name) && 
-             distinctDays < a.requiredDays
+      const highConqueredDays = conquered.length > 0
+        ? Math.max(...conquered.map(c => c.requiredDays))
+        : 0;
+
+      let next = ACHIEVEMENTS.find(a =>
+        !user.achievements.some(ua => ua.name === a.name) &&
+        a.requiredDays > highConqueredDays
       );
 
       if (next) {
-        response += `\n🏆 Próxima conquista: ${next.displayName} (${next.requiredDays} dias)`;
+        const progress = `(${distinctDays}/${next.requiredDays} dias)`;
+        response += `\n🏆 Próxima conquista: ${next.displayName} ${progress}`;
       } else if (conquered.length > 0) {
         response += `\n🏆 Próxima conquista: Nenhuma! Você chegou ao topo! 💀`;
       }
