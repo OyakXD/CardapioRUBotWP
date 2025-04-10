@@ -76,6 +76,27 @@ export class CommandHandler {
     const chatId = message.from;
 
     const chatPrivate = UserManager.isChatPrivate(chatId);
+    const userId = chatPrivate ? chatId : message.author;
+    const userPhone = userId.split("@")[0];
+
+    const participantID = message.author;
+    const groupParticipants =
+      GroupManager.getGroupMetadata(chatId)?.participants;
+    const groupParticipant = groupParticipants?.filter(
+      (participant) => participant.id === participantID
+    )[0] ?? null;
+    const isParticipantAdmin = !!groupParticipant?.isAdmin;
+
+    const options = {
+      userId,
+      userPhone,
+      chatId,
+      chatPrivate,
+      isGroup: !chatPrivate,
+      participantID,
+      groupParticipant,
+      groupParticipants
+    };
 
     if (this.prefixList.some(prefix => body.startsWith(prefix))) {
       const prefixUsed = this.prefixList.find(prefix => body.startsWith(prefix));
@@ -91,8 +112,6 @@ export class CommandHandler {
 
         if (subCommand) {
 
-          const userId = chatPrivate ? chatId : message.author;
-          const userPhone = userId.split("@")[0];
           const spamIdentifier = [
             userId,
             subCommand.getCommandName(),
@@ -105,27 +124,18 @@ export class CommandHandler {
             return await message.reply("Você está executando muito este comando! por favor, aguarde! 😅");
           }
 
-          const participantID = message.author;
-          const groupParticipants =
-            GroupManager.getGroupMetadata(chatId)?.participants;
-          const groupParticipant = groupParticipants?.filter(
-            (participant) => participant.id === participantID
-          )[0];
-
-          await subCommand.execute(message, args, {
-            userId,
-            userPhone,
-            chatId,
-            chatPrivate,
-            isGroup: !chatPrivate,
-            participantID,
-            groupParticipant,
-            groupParticipants
-          });
+          await subCommand.execute(message, args, options);
         }
       }
     } else {
-
+      if (options.isGroup && isParticipantAdmin && groupParticipants) {
+        if (body.includes("@everyone") || body.includes("@here") ||
+          body.includes("@all") || body.includes("@todos")) {
+          message.reply(`Mensagem importante 👆`, undefined, {
+            mentions: groupParticipants.map((participant) => participant.id),
+          });
+        }
+      }
     }
   }
 

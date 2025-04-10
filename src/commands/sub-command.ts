@@ -8,8 +8,9 @@ export interface CommandData {
   chatPrivate: boolean;
   isGroup: boolean;
   participantID?: string;
-  groupParticipant?: any;
+  groupParticipant?: ParticipantMetadata;
   groupParticipants?: ParticipantMetadata[];
+  isParticipantAdmin?: boolean;
 }
 
 export interface SubCommandInterface {

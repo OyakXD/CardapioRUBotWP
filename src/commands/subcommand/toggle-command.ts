@@ -24,13 +24,11 @@ export class ToggleCommand extends SubCommand {
     args: string[],
     data: CommandData
   ): Promise<any> {
-    const { chatId, isGroup, groupParticipant } = data;
+    const { chatId, isGroup, isParticipantAdmin } = data;
 
     if (!isGroup) {
       return await message.reply("Esse comando só pode ser executado em grupo! 😅");
     }
-
-    const isParticipantAdmin = !!groupParticipant.admin!;
 
     if (!isParticipantAdmin) {
       return await message.reply("Apenas administradores podem executar esse comando! 😅");

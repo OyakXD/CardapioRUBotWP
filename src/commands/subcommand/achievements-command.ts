@@ -1,7 +1,6 @@
 import { Message } from "whatsapp-web.js";
 import { CommandData, SubCommand } from "../sub-command";
 import { UserAchievement } from "../../user/user-achievement";
-import { WhatsappConnector } from "../..";
 import { UserManager } from "../../manager/user-manager";
 
 export class AchievementsCommand extends SubCommand {
