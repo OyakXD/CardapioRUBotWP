@@ -1,6 +1,5 @@
 node_modules/
 auth_session/
-wa_session/
 .wwebjs_cache/
 models/
 build/
