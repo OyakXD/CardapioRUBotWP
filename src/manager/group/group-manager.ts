@@ -41,4 +41,14 @@ export default class GroupManager {
   public static getGroupMetadata(groupId: string): GroupMetadata | null {
     return this.groupsMetadata[groupId] || null;
   }
+
+  public static isGroupMember(groupId: string, userId: string): boolean {
+    const group = this.getGroupMetadata(groupId);
+    
+    if (!group) {
+      return false;
+    }
+
+    return group.participants.some(participant => participant.id === userId);
+  }
 }

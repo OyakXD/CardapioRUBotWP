@@ -42,18 +42,10 @@ export class AchievementsCommand extends SubCommand {
           return await message.reply("❌ Número mencionado inválido.");
         }
         
-        mentionedNumber = `55${mentionedNumber}`;
-        
-        const mentionedUserData = UserManager.getUser(mentionedNumber);
-
-        if (mentionedUserData) {
-          targetUserId = UserManager.convertPhoneToJid(mentionedNumber);
-        } else {
-          return await message.reply("❌ Usuário mencionado não encontrado no sistema.");
-        }
+        targetUserId = UserManager.convertPhoneToJid(`55${mentionedNumber}`);
       }
 
-      const { message: achievementMessage, mentions } = await UserAchievement.showAchievement(targetUserId);
+      const { message: achievementMessage, mentions } = await UserAchievement.showAchievement(targetUserId, data.chatId);
 
       const options = {
         mentions: data.isGroup ? mentions.filter(mention => {

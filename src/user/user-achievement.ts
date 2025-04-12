@@ -3,6 +3,7 @@ import { Message } from "whatsapp-web.js";
 import { AchievementInfo, ACHIEVEMENTS } from "./types";
 import { UserManager } from "../manager/user-manager";
 import Utils from "../utils/utils";
+import GroupManager from "../manager/group/group-manager";
 
 export class UserAchievement {
 
@@ -188,12 +189,12 @@ export class UserAchievement {
     }
   }
 
-  public static async showAchievement(userPhone: string): Promise<{ message: string, mentions: string[] }> {
+  public static async showAchievement(userPhone: string, chatId?: string): Promise<{ message: string, mentions: string[] }> {
 
     userPhone = UserManager.convertJidToPhone(userPhone);
 
     try {
-      const user = await this.getPrisma().user.findUnique({
+      let user = await this.getPrisma().user.findUnique({
         where: { phone: userPhone },
         include: {
           achievements: true,
@@ -203,7 +204,26 @@ export class UserAchievement {
         }
       });
 
-      if (!user) return { message: '❌ Usuário não encontrado.', mentions: [] };
+      if (!user) {
+        if (!chatId || !GroupManager.isGroupMember(chatId, UserManager.convertPhoneToJid(userPhone))) {
+          return {
+            message: '❌ Usuário não encontrado.',
+            mentions: []
+          };
+        }
+
+        user = await this.getPrisma().user.upsert({
+          where: { phone: userPhone },
+          create: { phone: userPhone },
+          update: {},
+          include: {
+            achievements: true,
+            checkIns: {
+              select: { date: true }
+            }
+          }
+        });
+      }
 
       const distinctDays = new Set(
         user.checkIns.map(c => c.date.toISOString().substring(0, 10))
@@ -226,7 +246,11 @@ export class UserAchievement {
       }
 
       const highConqueredDays = conquered.length > 0
-        ? Math.max(...conquered.map(c => !c.isReward && c.requiredDays))
+        ? Math.max(
+          ...conquered
+            .filter(c => !c.isReward)
+            .map(c => c.requiredDays)
+        )
         : 0;
 
       let next = ACHIEVEMENTS.find(a =>
