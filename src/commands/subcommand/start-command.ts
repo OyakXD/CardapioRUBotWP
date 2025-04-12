@@ -1,4 +1,4 @@
-import { Message } from "whatsapp-web.js";
+import { Message } from "../../services/types";
 import { UserManager } from "../../manager/user-manager";
 import { CommandData, SubCommand } from "../sub-command";
 

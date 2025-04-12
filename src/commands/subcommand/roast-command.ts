@@ -1,4 +1,4 @@
-import { Message } from "whatsapp-web.js";
+import { Message } from "../../services/types";
 import { SubCommand } from "../sub-command";
 import UsernameRegex from "github-username-regex-js";
 

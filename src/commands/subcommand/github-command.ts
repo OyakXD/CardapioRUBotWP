@@ -1,4 +1,4 @@
-import { Message } from "whatsapp-web.js";
+import { Message } from "../../services/types";
 import { SubCommand } from "../sub-command";
 
 export class GithubCommand extends SubCommand {
@@ -25,7 +25,7 @@ export class GithubCommand extends SubCommand {
       );
     }
 
-    await message.reply("https://github.com/OyakXD/CardapioRUBotWP", message.from, {
+    await message.reply("https://github.com/OyakXD/CardapioRUBotWP", undefined, {
       linkPreview: true,
     });
   }

@@ -1,6 +1,6 @@
-import { Message } from "whatsapp-web.js";
 import { SubCommand } from "../sub-command";
 import { ACHIEVEMENTS } from "../../user/types";
+import { Message } from "../../services/types";
 
 export class AchievementTableCommand extends SubCommand {
 

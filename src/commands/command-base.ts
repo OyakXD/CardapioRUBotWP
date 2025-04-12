@@ -18,10 +18,10 @@ import { SipacCommand } from "./subcommand/sipac-command";
 import { XandaoCommand } from "./subcommand/xandao-command";
 import { ZureaCommand } from "./subcommand/zurea-command";
 import { OnibusCommand } from "./subcommand/onibus-command";
-import { Message } from "whatsapp-web.js";
 import { RankingCommand } from "./subcommand/ranking-command";
 import { AchievementTableCommand } from "./subcommand/achievement-table-command";
 import { AchievementsCommand } from "./subcommand/achievements-command";
+import { Message } from "../services/types";
 
 export const prefix = "!";
 

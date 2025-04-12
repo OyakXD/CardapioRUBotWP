@@ -2,7 +2,7 @@ import { CommandData, SubCommand } from "../sub-command";
 import { YoutubeSearchResult } from "../../types/types";
 import Utils from "../../utils/utils";
 import DDown from "../../request/ddown";
-import { Message } from "whatsapp-web.js";
+import { Message } from "../../services/types";
 
 export class MusicCommand extends SubCommand {
   private musicRunningCount = 0;

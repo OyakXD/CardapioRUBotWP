@@ -1,7 +1,6 @@
-import { Message, MessageMedia } from "whatsapp-web.js";
+import { Message, MessageMedia } from "../../services/types";
 import { BusManager } from "../../manager/bus-manager";
 import { SubCommand } from "../sub-command";
-import fs from "fs";
 
 export class OnibusCommand extends SubCommand {
   public getCommandName(): string {

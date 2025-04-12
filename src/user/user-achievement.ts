@@ -1,8 +1,8 @@
 import { WhatsappConnector } from "..";
-import { Message } from "whatsapp-web.js";
 import { AchievementInfo, ACHIEVEMENTS } from "./types";
 import { UserManager } from "../manager/user-manager";
 import Utils from "../utils/utils";
+import { Message } from "../services/types";
 
 export class UserAchievement {
 

@@ -1,4 +1,4 @@
-import { Message, MessageMedia } from "whatsapp-web.js";
+import { Message, MessageMedia } from "../../services/types";
 import { CommandData, SubCommand } from "../sub-command";
 
 export class ZureaCommand extends SubCommand {

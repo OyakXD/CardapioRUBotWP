@@ -1,5 +1,5 @@
-import { Message } from "whatsapp-web.js";
 import { ParticipantMetadata } from "../manager/group/group-manager";
+import { Message } from "../services/types";
 
 export interface CommandData {
   userId: string;

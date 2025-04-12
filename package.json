@@ -18,15 +18,15 @@
     "@types/node": "^22.14.0",
     "@types/qrcode-terminal": "^0.12.2",
     "prisma": "^5.18.0",
-    "tsx": "^4.16.5",
     "ts-node-dev": "^2.0.0",
+    "tsx": "^4.16.5",
     "typescript": "^5.5.4"
   },
   "dependencies": {
     "@hapi/boom": "^10.0.1",
     "@prisma/client": "^5.18.0",
     "axios": "^1.7.5",
-    "baileys": "github:WhiskeySockets/Baileys",
+    "baileys": "^6.7.16",
     "cheerio": "1.0.0-rc.12",
     "cron": "^3.5.0",
     "github-username-regex-js": "^1.0.0",
