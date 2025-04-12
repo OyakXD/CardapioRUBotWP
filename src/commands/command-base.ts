@@ -77,7 +77,11 @@ export class CommandHandler {
 
     const chatPrivate = UserManager.isChatPrivate(chatId);
     const userId = chatPrivate ? chatId : message.author;
-    const userPhone = userId.split("@")[0];
+    const userPhone = userId?.split("@")[0] ?? null;
+
+    if (!userPhone) {
+      console.log(`User phone not found for chatId: ` + JSON.stringify(message, null, 2));
+    }
 
     const participantID = message.author;
     const groupParticipants =
