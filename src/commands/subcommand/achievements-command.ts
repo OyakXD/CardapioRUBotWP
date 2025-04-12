@@ -2,6 +2,7 @@ import { Message } from "whatsapp-web.js";
 import { CommandData, SubCommand } from "../sub-command";
 import { UserAchievement } from "../../user/user-achievement";
 import { UserManager } from "../../manager/user-manager";
+import GroupManager from "../../manager/group/group-manager";
 
 export class AchievementsCommand extends SubCommand {
 
@@ -49,7 +50,7 @@ export class AchievementsCommand extends SubCommand {
 
       const options = {
         mentions: data.isGroup ? mentions.filter(mention => {
-          return data.groupParticipants?.some(p => p.id === mention) ?? false;
+          return GroupManager.isGroupMember(data.chatId, mention);
         }) : mentions
       };
 

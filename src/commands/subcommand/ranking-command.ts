@@ -1,6 +1,7 @@
 import { Message } from "whatsapp-web.js";
 import { CommandData, SubCommand } from "../sub-command";
 import { UserAchievement } from "../../user/user-achievement";
+import GroupManager from "../../manager/group/group-manager";
 
 export class RankingCommand extends SubCommand {
 
@@ -23,13 +24,11 @@ export class RankingCommand extends SubCommand {
   ): Promise<any> {
     const { message: topMessage, mentions } = await UserAchievement.generateRankingDay();
 
-    const groupParticipants = data.groupParticipants || [];
-
     const options = {
       mentions: data.isGroup ? mentions.filter(mention => {
-        return groupParticipants.some(p => p.id === mention);
+        return GroupManager.isGroupMember(data.chatId, mention);
       }) : mentions
-    };
+    };  
 
     await message.reply(topMessage, undefined, options);
   }

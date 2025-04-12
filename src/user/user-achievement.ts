@@ -164,16 +164,18 @@ export class UserAchievement {
 
       top.forEach((entry, index) => {
         const medalha = index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉";
+        const userName = GroupManager.getGroupMemberName(entry.phone);
 
         mentions.push(UserManager.convertPhoneToJid(entry.phone));
-        response += `${medalha} @${entry.phone} | ${entry.days} dias\n`;
+        response += `${medalha} @${entry.phone}${userName ? ` - ${userName}` : ''} | ${entry.days} dias\n`;
       });
 
 
       if (ranking.length > 3) {
         response += `\nOutros participantes:\n`;
         ranking.slice(3, 10).forEach((entry, index) => {
-          response += `${index + 4}. @${entry.phone} | ${entry.days} dias\n`;
+          const userName = GroupManager.getGroupMemberName(entry.phone);
+          response += `${index + 4}. @${entry.phone}${userName ? ` - ${userName}` : ''} | ${entry.days} dias\n`;
           mentions.push(UserManager.convertPhoneToJid(entry.phone));
         });
 
@@ -205,7 +207,7 @@ export class UserAchievement {
       });
 
       if (!user) {
-        if (!chatId || !GroupManager.isGroupMember(chatId, UserManager.convertPhoneToJid(userPhone))) {
+        if (!chatId || !GroupManager.isGroupMember(chatId, userPhone)) {
           return {
             message: '❌ Usuário não encontrado.',
             mentions: []
@@ -233,8 +235,10 @@ export class UserAchievement {
         user.achievements.some(ua => ua.name === a.name)
       );
 
+      const userName = GroupManager.getGroupMemberName(user.phone);
+
       let mentions: string[] = [UserManager.convertPhoneToJid(user.phone)];
-      let response = `🎖️ Conquistas de @${user.phone}:\n`;
+      let response = `🎖️ Conquistas de @${user.phone}${userName ? ` - ${userName}` : ''}:\n`;
 
       if (conquered.length === 0) {
         response += `- 😕 Nenhuma titulo conquistado até o momento.\n`;
