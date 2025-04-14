@@ -1,2 +1,3 @@
-2025/04/12-14:19:20.773 58cd8 Creating DB /root/CardapioRUBotWP/wa_session/session/Default/shared_proto_db/metadata since it was missing.
-2025/04/12-14:19:20.779 58cd8 Reusing MANIFEST /root/CardapioRUBotWP/wa_session/session/Default/shared_proto_db/metadata/MANIFEST-000001
+2025/04/13-16:13:39.371 2d2c Reusing MANIFEST D:\Workspace\CardapioRUBotWP\wa_session\session\Default\shared_proto_db\metadata/MANIFEST-000001
+2025/04/13-16:13:39.374 2d2c Recovering log #3
+2025/04/13-16:13:39.375 2d2c Reusing old log D:\Workspace\CardapioRUBotWP\wa_session\session\Default\shared_proto_db\metadata/000003.log 

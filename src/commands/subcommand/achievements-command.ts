@@ -49,9 +49,9 @@ export class AchievementsCommand extends SubCommand {
       const { message: achievementMessage, mentions } = await UserAchievement.showAchievement(targetUserId, data.chatId);
 
       const options = {
-        mentions: data.isGroup ? mentions.filter(mention => {
-          return GroupManager.isGroupMember(data.chatId, mention);
-        }) : mentions
+        // mentions: data.isGroup ? mentions.filter(mention => {
+        //   return GroupManager.isGroupMember(data.chatId, mention);
+        // }) : mentions
       };
 
       await message.reply(achievementMessage, undefined, options);

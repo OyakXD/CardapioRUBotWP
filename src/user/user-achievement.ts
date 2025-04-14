@@ -18,56 +18,77 @@ export class UserAchievement {
     const today = Utils.getBrazilToday();
     const cacheKey = `${userPhone}-${today}`;
 
+    const MAX_RETRIES = 3;
+    let retries = 0;
+
     if (this.checkInCache.has(cacheKey)) {
       await this.incrementQueryCount(userPhone);
       return;
     }
 
-    await this.getPrisma().$transaction(async (tx) => {
-      const user = await tx.user.upsert({
-        where: { phone: userPhone },
-        create: { phone: userPhone },
-        update: {},
-        include: {
-          checkIns: {
-            where: {
-              date: {
-                gte: new Date(today),
-                lt: new Date(today + 24 * 60 * 60 * 1000)
+    while (retries < MAX_RETRIES) {
+      try {
+
+        await this.getPrisma().$transaction(async (tx) => {
+          const user = await tx.user.upsert({
+            where: { phone: userPhone },
+            create: { phone: userPhone },
+            update: {},
+            include: {
+              checkIns: {
+                where: {
+                  date: {
+                    gte: new Date(today),
+                    lt: new Date(today + 24 * 60 * 60 * 1000)
+                  }
+                },
+                take: 1
               }
-            },
-            take: 1
-          }
-        }
-      });
+            }
+          });
 
-      if (user.checkIns.length > 0) {
-        this.checkInCache.set(cacheKey, new Date());
-        await tx.user.update({
-          where: { phone: userPhone },
-          data: { queries: { increment: 1 } }
+          if (user.checkIns.length > 0) {
+            this.checkInCache.set(cacheKey, new Date());
+            await tx.user.update({
+              where: { phone: userPhone },
+              data: { queries: { increment: 1 } }
+            });
+            return;
+          }
+
+          const userId = user.id;
+
+          await Promise.all([
+            tx.checkIn.create({
+              data: {
+                date: new Date(today),
+                userId
+              }
+            }),
+            tx.user.update({
+              where: { id: userId },
+              data: { queries: { increment: 1 } }
+            })
+          ]);
+
+          this.checkInCache.set(cacheKey, new Date());
+          await this.updateAchievements(userId, message, tx);
+        }, {
+          maxWait: 5000,
+          timeout: 10000
         });
-        return;
+
+        break;
+      } catch (error) {
+        if (error.code === 'P2028' && retries < MAX_RETRIES - 1) {
+          retries++;
+          await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+          continue;
+        }
+
+        console.error('Erro ao atualizar conquistas:', error);
       }
-
-      const userId = user.id;
-
-      await Promise.all([
-        tx.checkIn.create({
-          data: {
-            date: new Date(today),
-            userId
-          }
-        }),
-        tx.user.update({
-          where: { id: userId },
-          data: { queries: { increment: 1 } }
-        })
-      ]);
-
-      this.checkInCache.set(cacheKey, new Date());
-      await this.updateAchievements(userId, message, tx);
-    });
+    }
   }
 
   private static async updateAchievements(

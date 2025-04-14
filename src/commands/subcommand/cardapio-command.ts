@@ -23,7 +23,9 @@ export class CardapioCommand extends SubCommand {
     data: CommandData
   ): Promise<any> {
 
-    UserAchievement.update(data.userId, message);
+    if (data.chatPrivate) {
+      UserAchievement.update(data.userId, message);
+    }
 
     const { lunch, dinner, date } = await MenuManager.getMenu();
 

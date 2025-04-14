@@ -25,9 +25,9 @@ export class RankingCommand extends SubCommand {
     const { message: topMessage, mentions } = await UserAchievement.generateRankingDay();
 
     const options = {
-      mentions: data.isGroup ? mentions.filter(mention => {
-        return GroupManager.isGroupMember(data.chatId, mention);
-      }) : mentions
+      // mentions: data.isGroup ? mentions.filter(mention => {
+      //   return GroupManager.isGroupMember(data.chatId, mention);
+      // }) : mentions
     };  
 
     await message.reply(topMessage, undefined, options);
