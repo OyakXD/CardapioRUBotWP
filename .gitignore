@@ -3,6 +3,7 @@ auth_session/
 .wwebjs_cache/
 models/
 build/
+wa_session/
 bin/*
 db/
 .env
