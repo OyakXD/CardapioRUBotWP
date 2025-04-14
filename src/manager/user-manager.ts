@@ -18,9 +18,9 @@ export class UserManager {
     scheduleJob({ hour: 16, minute: 30, tz: "America/Fortaleza" }, () =>
       this.sendNotification("dinner")
     );
-    scheduleJob({ hour: 20, minute: 0, tz: "America/Fortaleza" }, () =>
-      this.rememberSchedule()
-    );
+    // scheduleJob({ hour: 20, minute: 0, tz: "America/Fortaleza" }, () =>
+    //   this.rememberSchedule()
+    // );
   }
 
   public static async sendNotification(type: "lunch" | "dinner") {
