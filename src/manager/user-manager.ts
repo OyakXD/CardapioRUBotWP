@@ -43,7 +43,11 @@ export class UserManager {
                             this.isChatPrivate(chatNotification.chatJid)) ||
                         !this.isChatPrivate(chatNotification.chatJid)
                     ) {
-                        await WhatsappConnector.socket?.sendMessage(chatNotification.chatJid, { text: menu });
+                        try {
+                            await WhatsappConnector.socket?.sendMessage(chatNotification.chatJid, { text: menu });
+                        } catch (error) {
+                            log.error_(`Erro ao enviar o menu para ${chatNotification.chatJid}:`, error);
+                        }
                     }
                 }
             }
