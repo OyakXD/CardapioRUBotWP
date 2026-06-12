@@ -1,89 +1,76 @@
-import { GroupChat, Client as WASocket } from "whatsapp-web.js";
+import { WASocket, GroupMetadata as BaileysGroupMetadata } from "@whiskeysockets/baileys";
 import { UserManager } from "../user-manager";
-import log from "log-beautify";
 
 export interface ParticipantMetadata {
-  id: string;
-  name: string;
-  isAdmin: boolean;
-  isSuperAdmin: boolean;
+    id: string;
+    name: string;
+    isAdmin: boolean;
+    isSuperAdmin: boolean;
 }
 
 export interface GroupMetadata {
-  id: string;
-  name: string;
-  participants: ParticipantMetadata[];
+    id: string;
+    name: string;
+    participants: ParticipantMetadata[];
 }
 
 export default class GroupManager {
-  public static groupsMetadata: Record<string, GroupMetadata> = {};
-  public static groupMemberNames: Record<string, string> = {};
+    public static groupsMetadata: Record<string, GroupMetadata> = {};
+    public static groupMemberNames: Record<string, string> = {};
 
-  public static async loadGroupsMetadata(socket: WASocket) {
-    const chats = await socket.getChats();
-    const groups: GroupChat[] = chats.filter(chat => chat.isGroup) as GroupChat[];
+    public static async loadGroupsMetadata(socket: WASocket) {
+        const groups: Record<string, BaileysGroupMetadata> = await socket.groupFetchAllParticipating();
 
-    for (const group of groups) {
-      if (!group.isGroup) {
-        continue;
-      }
+        for (const groupId in groups) {
+            const group = groups[groupId];
 
-      const participants = await Promise.all(
-        group.participants.map(async participant => {
-          const contactId = participant.id._serialized;
-      
-          let contactName = '';
+            const participants: ParticipantMetadata[] = group.participants.map(participant => {
+                const contactId = participant.id;
 
-          try {
-            const contact = await socket.getContactById(contactId);
-            contactName = (contact.name || contact.pushname || "").trim();
-          } catch (error) {
-            log.error_(`Erro ao obter contato ${contactId}:`, error);
-          }
+                const phone = UserManager.convertJidToPhone(contactId);
+                const contactName = this.groupMemberNames[phone] || "";
 
-          if (contactName) {
-            this.groupMemberNames[UserManager.convertJidToPhone(contactId)] = contactName;
-          }
-          
-          return {
-            id: contactId,
-            name: contactName,
-            isAdmin: participant.isAdmin,
-            isSuperAdmin: participant.isSuperAdmin,
-          };
-        })
-      );
+                const isAdmin = participant.admin === 'admin' || participant.admin === 'superadmin';
+                const isSuperAdmin = participant.admin === 'superadmin';
 
-      this.groupsMetadata[group.id._serialized] = {
-        id: group.id._serialized,
-        name: group.name,
-        participants: participants,
-      };
-    }
-  }
+                return {
+                    id: contactId,
+                    name: contactName,
+                    isAdmin,
+                    isSuperAdmin,
+                };
+            });
 
-  public static getGroupMemberName(userId: string): string | null{
-    const userName = this.groupMemberNames[UserManager.convertJidToPhone(userId)] ?? null;
-
-    if (userName && userName.length === 0) {
-      return null;
+            this.groupsMetadata[groupId] = {
+                id: groupId,
+                name: group.subject,
+                participants: participants,
+            };
+        }
     }
 
-    return userName;
-  }
+    public static getGroupMemberName(userId: string): string | null {
+        const userName = this.groupMemberNames[UserManager.convertJidToPhone(userId)] ?? null;
 
-  public static getGroupMetadata(groupId: string): GroupMetadata | null {
-    return this.groupsMetadata[groupId] || null;
-  }
+        if (userName && userName.length === 0) {
+            return null;
+        }
 
-  public static isGroupMember(groupId: string, userId: string): boolean {
-    const group = this.getGroupMetadata(groupId);
-    const userPhone = UserManager.convertJidToPhone(userId);
-    
-    if (!group) {
-      return false;
+        return userName;
     }
 
-    return group.participants.some(participant => participant.id.includes(userPhone));
-  }
+    public static getGroupMetadata(groupId: string): GroupMetadata | null {
+        return this.groupsMetadata[groupId] || null;
+    }
+
+    public static isGroupMember(groupId: string, userId: string): boolean {
+        const group = this.getGroupMetadata(groupId);
+        const userPhone = UserManager.convertJidToPhone(userId);
+
+        if (!group) {
+            return false;
+        }
+
+        return group.participants.some(participant => participant.id.includes(userPhone));
+    }
 }

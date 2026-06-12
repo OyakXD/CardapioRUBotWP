@@ -1,6 +1,6 @@
 {
   "name": "cardapiorubotwp",
-  "version": "1.0.0",
+  "version": "1.6.0",
   "description": "",
   "main": "build/index.js",
   "scripts": {
@@ -18,13 +18,14 @@
     "@types/node": "^22.14.0",
     "@types/qrcode-terminal": "^0.12.2",
     "prisma": "^5.18.0",
-    "tsx": "^4.16.5",
     "ts-node-dev": "^2.0.0",
+    "tsx": "^4.16.5",
     "typescript": "^5.5.4"
   },
   "dependencies": {
     "@hapi/boom": "^10.0.1",
     "@prisma/client": "^5.18.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc13",
     "axios": "^1.7.5",
     "baileys": "github:WhiskeySockets/Baileys",
     "cheerio": "1.0.0-rc.12",
@@ -34,9 +35,9 @@
     "nock": "^13.5.5",
     "node-cache": "^5.1.2",
     "node-schedule": "^2.1.1",
+    "pino": "^10.3.1",
     "qrcode-terminal": "^0.12.0",
-    "vitest": "^2.0.5",
-    "whatsapp-web.js": "^1.26.1-alpha.3"
+    "vitest": "^2.0.5"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
