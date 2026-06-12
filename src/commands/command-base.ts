@@ -93,6 +93,7 @@ export class CommandHandler {
             participantID,
             groupParticipant,
             groupParticipants,
+            isParticipantAdmin,
             socket
         };
 
