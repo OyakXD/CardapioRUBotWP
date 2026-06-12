@@ -33,7 +33,17 @@ export class ToggleCommand extends SubCommand {
             }, { quoted: message });
         }
 
-        if (!isParticipantAdmin) {
+        const metadata = await data.socket.groupMetadata(chatId);
+
+        const participant = metadata.participants.find(
+            p => p.id === data.userId
+        );
+
+        const isAdmin =
+            participant?.admin === 'admin' ||
+            participant?.admin === 'superadmin';
+
+        if (!isAdmin) {
             return await data.socket.sendMessage(data.chatId, {
                 text: "Apenas administradores podem executar esse comando! 😅"
             }, { quoted: message });
