@@ -3,7 +3,7 @@ import cheerio, { load as loadHTML, Cheerio, Element } from "cheerio";
 import { Menu, ParserCategory } from "../types/types";
 
 export const previewMenuURL =
-  "https://www.ufc.br/restaurante/cardapio/5-restaurante-universitario-de-quixada";
+  "https://ufc2012.ufc.br/restaurante/cardapio/5-restaurante-universitario-de-quixada";
 
 export class RequestMenu {
   public static async get(): Promise<Menu[] | null[]> {
