@@ -38,3 +38,8 @@ export interface YoutubeSearchResult {
     bestScore: string | null;
   };
 }
+
+export interface RestaurantHours {
+  lunch: string;
+  dinner: string;
+}
