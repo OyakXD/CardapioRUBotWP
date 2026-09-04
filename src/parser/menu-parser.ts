@@ -1,4 +1,5 @@
 import { MenuManager } from "../manager/menu-manager";
+import { RestaurantHoursManager } from "../manager/restaurant-hours-manager";
 import { Menu } from "../types/types";
 import Utils from "../utils/utils";
 import { EmojiParser } from "./emoji-parser";
@@ -104,11 +105,17 @@ export class MenuParser {
     menu: Menu
   ) {
     const menuMessage = await this.getMenuMessage(menu);
+    const hours = RestaurantHoursManager.getHours();
+
+    const mealHours =
+      type === "lunch"
+        ? hours.lunch
+        : hours.dinner;
 
     return [
       type === "lunch" ? "*Almoço:*" : "*Jantar:*",
       ``,
-      `=`.repeat(28),
+      `======================== ${mealHours} ===========================`,
       menuMessage,
     ];
   }
