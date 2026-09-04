@@ -1,6 +1,7 @@
 import { CommandHandler } from "./commands/command-base";
 import { MenuManager } from "./manager/menu-manager";
 import { UserManager } from "./manager/user-manager";
+import { RestaurantHoursManager } from "./manager/restaurant-hours-manager";
 import { PrismaClient } from "@prisma/client";
 import { BusManager } from "./manager/bus-manager";
 import log from "log-beautify";
@@ -31,6 +32,7 @@ export const WhatsappConnector = new (class WhatsappInstance {
                 MenuManager.initialize(),
                 BusManager.initialize(),
                 UserManager.initialize(),
+                RestaurantHoursManager.initialize(),
             ])
             await this.initialize();
         } catch (error) {
